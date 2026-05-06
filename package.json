@@ -5,8 +5,10 @@
   "name": "mapps-cms-backend",
   "version": "1.0.0",
   "description": "Mobile Apps CMS Project Backend",
+  "type": "module",
   "main": "app.ts",
   "dependencies": {
+    "express": "^5.2.1",
     "undici-types": "^7.19.2"
   },
   "scripts": {
