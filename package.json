@@ -10,7 +10,8 @@
   "dependencies": {
     "express": "^5.2.1",
     "sequelize": "^6.37.8",
-    "undici-types": "^7.19.2"
+    "undici-types": "^7.19.2",
+    "tedious": "^19.2.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
