@@ -1,8 +1,8 @@
 import {Sequelize, DataTypes } from 'sequelize';
 
-/* need to create new user in mssql, you can do this in the GUI in SSMS or using this query
+/* need to create new user in mssql, you can do this in the GUI in SSMS or using this query, check policy just stop it from enforcing password rules
 
-CREATE LOGIN [NewUser] WITH PASSWORD = 'password';
+CREATE LOGIN [NewUser] WITH PASSWORD = 'password', CHECK_POLICY = OFF;
 GO
 
 I believe there is a CLI command to create the DB but it isnt automatically created when you run the program
