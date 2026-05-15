@@ -1,13 +1,8 @@
 import express, { json } from 'express';
 import {sequelize} from './db.ts'
 
-try {
-  await sequelize.authenticate();
-  console.log("Successfully connected");
-}catch(error){
-  console.error("Unable to connect to database", error);
-}
-
+await sequelize.tryConnect();
+await sequelize.seedDummyData();
 
 const app = express();
 const PORT = "3000";
