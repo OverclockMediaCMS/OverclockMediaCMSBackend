@@ -9,7 +9,7 @@ I believe there is a CLI command to create the DB but it isnt automatically crea
 You can also just manually create the DB in SSMS and make the owner your user! otherwise you wont be able to access it.
 
 */ 
-export const sequelize = new Sequelize("OverclockMediaCMS", "rory", "Password123!", {
+export const sequelize = new Sequelize("OverclockMediaCMS", "tim", "Password123!", {
     host: "localhost",
     dialect : "mssql",
     dialectOptions: {
