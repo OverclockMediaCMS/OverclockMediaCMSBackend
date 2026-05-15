@@ -1,5 +1,14 @@
 import {Sequelize, DataTypes } from 'sequelize';
 
+/* need to create new user in mssql, you can do this in the GUI in SSMS or using this query
+
+CREATE LOGIN [NewUser] WITH PASSWORD = 'password';
+GO
+
+I believe there is a CLI command to create the DB but it isnt automatically created when you run the program
+You can also just manually create the DB in SSMS and make the owner your user! otherwise you wont be able to access it.
+
+*/ 
 export const sequelize = new Sequelize("OverclockMediaCMS", "rory", "Password123!", {
     host: "localhost",
     dialect : "mssql",
