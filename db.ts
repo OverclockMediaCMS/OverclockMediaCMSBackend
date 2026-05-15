@@ -43,6 +43,15 @@ class OverclockSequelize extends Sequelize {
         await u1.save();
         await u2.save();
     }
+    async GetUserById(ID : number){
+        return await User.findOne({
+            where : {id: ID}
+        });
+    }
+    async GetAllUsers(){
+        let users = await User.findAll();
+        return users;
+    }
 }
 export const sequelize = new OverclockSequelize("OverclockMediaCMS", "rory", "Password123!", {
     host: "localhost",
@@ -184,4 +193,4 @@ Post.belongsToMany(Tag, {through: 'TagPost', foreignKey : "PostId"});
 Media.belongsToMany(Post, {through: 'MediaPost', foreignKey : "MediaId"});
 Post.belongsToMany(Media, {through: 'MediaPost', foreignKey : "PostId"});
 
-await sequelize.sync({force : true});
+await sequelize.sync();

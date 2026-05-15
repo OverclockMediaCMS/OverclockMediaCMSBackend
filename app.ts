@@ -2,7 +2,7 @@ import express, { json } from 'express';
 import {sequelize} from './db.ts'
 //instructions for setting up connection in db.ts
 await sequelize.tryConnect();
-await sequelize.seedDummyData();
+//await sequelize.seedDummyData();
 
 const app = express();
 const PORT = "3000";
@@ -21,7 +21,8 @@ const users = [
 ]
 
 app.get("/users", (req, res)=> {
-  res.send(users);
+  let result = sequelize.GetAllUsers();
+  res.send(sequelize.GetAllUsers());
 });
 
 app.get("/users/:id", (req, res) => {
