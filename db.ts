@@ -44,7 +44,7 @@ class OverclockSequelize extends Sequelize {
         await u2.save();
     }
 }
-export const sequelize = new OverclockSequelize("OverclockMediaCMS", "tim", "Password123!", {
+export const sequelize = new OverclockSequelize("OverclockMediaCMS", "tim", "123", {
     host: "localhost",
     dialect : "mssql",
     dialectOptions: {
