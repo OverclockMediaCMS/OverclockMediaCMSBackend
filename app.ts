@@ -1,4 +1,6 @@
 import express, { json } from 'express';
+import {sequelize} from './db.ts'
+
 
 const app = express();
 const PORT = "3000";
