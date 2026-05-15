@@ -54,7 +54,7 @@ class OverclockSequelize extends Sequelize {
         return users;
     }
 }
-export const sequelize = new OverclockSequelize("OverclockMediaCMS", "rory", "Password123!", {
+export const sequelize = new OverclockSequelize("OverclockMediaCMS", "tim", "123", {
     host: "localhost",
     dialect : "mssql",
     dialectOptions: {
