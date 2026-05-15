@@ -1,8 +1,9 @@
 import express, { json } from 'express';
 import {sequelize} from './db.ts'
+
 //instructions for setting up connection in db.ts
 await sequelize.tryConnect();
-await sequelize.seedDummyData();
+//await sequelize.seedDummyData();
 
 const app = express();
 const PORT = "3000";
@@ -20,17 +21,18 @@ const users = [
   { "id" : "3","name" : "Tem" },
 ]
 
-app.get("/users", (req, res)=> {
-  res.send(users);
+app.get("/users", async (req, res)=> {
+  let result = await sequelize.GetAllUsers();
+  res.json(result);
 });
 
-app.get("/users/:id", (req, res) => {
+app.get("/users/:id", async (req, res) => {
   const {id} = req.params;
-  const obj = users.find((u) => u.id === id);
+  const obj = await sequelize.GetUserById(parseInt(id));
   if (!obj){
     return res.status(404).send("not found");
   }
-  res.send(obj);
+  res.json(obj);
 });
 
 app.post("/users/create", (req, res) => {
