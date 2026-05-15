@@ -9,6 +9,7 @@
   "main": "app.ts",
   "dependencies": {
     "express": "^5.2.1",
+    "sequelize": "^6.37.8",
     "undici-types": "^7.19.2"
   },
   "scripts": {
