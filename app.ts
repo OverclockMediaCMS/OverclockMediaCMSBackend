@@ -1,7 +1,8 @@
 import express, { json } from 'express';
 import {sequelize} from './db.ts'
 
-
+await sequelize.tryConnect();
+await sequelize.seedDummyData();
 const app = express();
 const PORT = "3000";
 
