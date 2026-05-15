@@ -1,4 +1,4 @@
-import {Sequelize, DataTypes } from 'sequelize';
+import {Sequelize, DataTypes, } from 'sequelize';
 
 /* need to create new user in mssql, you can do this in the GUI in SSMS or using this query, check policy just stop it from enforcing password rules
 
@@ -44,9 +44,10 @@ class OverclockSequelize extends Sequelize {
         await u2.save();
     }
     async GetUserById(ID : number){
-        return await User.findOne({
+        let user = await User.findOne({
             where : {id: ID}
         });
+        return user;
     }
     async GetAllUsers(){
         let users = await User.findAll();
