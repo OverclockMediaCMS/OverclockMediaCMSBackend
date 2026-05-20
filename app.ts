@@ -1,5 +1,6 @@
 import express, { json } from 'express';
 import {sequelize} from './db.ts'
+import cors from 'cors';
 
 //instructions for setting up connection in db.ts
 await sequelize.tryConnect();
@@ -7,19 +8,14 @@ await sequelize.tryConnect();
 
 const app = express();
 const PORT = "3000";
+app.use(cors());
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Hello Overclock Media Backend!");
   console.log("Response sent");
 });
 
-app.use(express.json());
-
-const users = [
-  { "id" : "1","name" : "Tim" },
-  { "id" : "2","name" : "Tom" },
-  { "id" : "3","name" : "Tem" },
-]
 
 app.get("/users", async (req, res)=> {
   let result = await sequelize.GetAllUsers();
@@ -71,11 +67,6 @@ app.post("/users/create", (req, res) => {
 
 app.delete("/users/:id", (req, res) => {
   const {id} = req.params;
-  const index = users.findIndex((u) => u.id === id);
-  if (index < 0){
-    return res.status(404).send("not found");
-  }
-  users.splice(index,1);
   res.send("Deleted id:" + id);  
 });
 

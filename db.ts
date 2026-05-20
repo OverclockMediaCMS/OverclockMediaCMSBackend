@@ -24,6 +24,10 @@ class OverclockSequelize extends Sequelize {
     }
     //calling this will seed the DB with some dummy data
     async seedDummyData(){
+        let users = await User.findAll();
+        if(users.length > 0){
+            return;
+        }
         const u1 = User.build(
             {
                 FirstName: 'u1',
@@ -40,8 +44,28 @@ class OverclockSequelize extends Sequelize {
                 PasswordHash: 'password'
             }
         );
+        const p1 = Post.build(
+            {
+                Title: "This is a post",
+                Body: "This is the body",
+                isDraft: false,
+                DateTime: new Date(),
+                UserId: u1.dataValues.id
+            }
+        );
+        const p2 = Post.build(
+            {
+                Title: "This is another post",
+                Body: "This is the body",
+                isDraft: false,
+                DateTime: new Date(),
+                UserId: u2.dataValues.id
+            }
+        );
         await u1.save();
         await u2.save();
+        await p1.save();
+        await p2.save();
     }
     async GetUserById(ID : number){
         let user = await User.findOne({
