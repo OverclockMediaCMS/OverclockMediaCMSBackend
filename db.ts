@@ -125,8 +125,32 @@ class OverclockSequelize extends Sequelize {
         });
         return users;
     }
+    async GetMediaById(ID : number){
+        let media = await Media.findOne({
+            where : {id: ID}
+        });
+        return media;
+    }
+    async GetAllMedia(){
+        let media = await Media.findAll();
+        return media;
+    }
+    async PostUser(fName : string, lName : string, email : string, passwordHash : string){
+        const u = await User.create({
+            FirstName: fName,
+            LastName: lName,
+            Email : email,
+            PasswordHash : passwordHash
+        });
+        return u.toJSON();
+    }
+    async PostPost(title : string, body : string, isDraft : boolean, date : string){
+        const p = await Post.create({
+            
+        });
+    }
 }
-export const sequelize = new OverclockSequelize("OverclockMediaCMS", "rory", "Password123!", {
+export const sequelize = new OverclockSequelize("OverclockMediaCMS", "tim", "123", {
     host: "localhost",
     dialect : "mssql",
     dialectOptions: {
