@@ -53,6 +53,26 @@ class OverclockSequelize extends Sequelize {
         let users = await User.findAll();
         return users;
     }
+    async GetPostById(ID : number){
+        let post = await Post.findOne({
+            where : {id: ID}
+        });
+        return post;
+    }
+    async GetAllPosts(){
+        let posts = await Post.findAll();
+        return posts;
+    }
+    async GetMediaById(ID : number){
+        let media = await Media.findOne({
+            where : {id: ID}
+        });
+        return media;
+    }
+    async GetAllMedia(){
+        let media = await Media.findAll();
+        return media;
+    }
 }
 export const sequelize = new OverclockSequelize("OverclockMediaCMS", "tim", "123", {
     host: "localhost",
