@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6"
   },
   "name": "mapps-cms-backend",
@@ -8,10 +9,11 @@
   "type": "module",
   "main": "app.ts",
   "dependencies": {
+    "cors": "2.8.6",
     "express": "^5.2.1",
     "sequelize": "^6.37.8",
-    "undici-types": "^7.19.2",
-    "tedious": "^19.2.1"
+    "tedious": "^19.2.1",
+    "undici-types": "^7.19.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
