@@ -49,7 +49,7 @@ class OverclockSequelize extends Sequelize {
                 Title: "This is a post",
                 Body: "This is the body",
                 isDraft: false,
-                DateTime: new Date(),
+                Date: new Date(),
                 UserId: u1.dataValues.id
             }
         );
@@ -58,7 +58,7 @@ class OverclockSequelize extends Sequelize {
                 Title: "This is another post",
                 Body: "This is the body",
                 isDraft: false,
-                DateTime: new Date(),
+                Date: new Date(),
                 UserId: u2.dataValues.id
             }
         );

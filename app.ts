@@ -4,7 +4,7 @@ import cors from 'cors';
 
 //instructions for setting up connection in db.ts
 await sequelize.tryConnect();
-//await sequelize.seedDummyData();
+await sequelize.seedDummyData();
 
 const app = express();
 const PORT = "3000";
