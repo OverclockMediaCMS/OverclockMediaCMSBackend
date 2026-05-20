@@ -63,14 +63,10 @@ app.get("/media/:id", async (req, res) => {
   res.json(obj);
 });
 
-
-
 app.post("/users/create", (req, res) => {
-  const { name } = req.body;
-  const id = parseInt(users[users.length-1].id) + 1;
-  const obj = {"id" : id.toString(), "name" : name };
-  users.push(obj);
-  res.send(obj);
+  const { FirstName, LastName, Email, PasswordHash } = req.body;
+  const obj = sequelize.PostUser(FirstName, LastName, Email, PasswordHash);
+  res.json(obj);
 });
 
 app.delete("/users/:id", (req, res) => {

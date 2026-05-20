@@ -64,7 +64,11 @@ Command:
 
 curl -X POST http://localhost:3000/users/create \
      -H "Content-Type: application/json" \
-     -d '{"name": "John"}'
+     -d '{"FirstName": "John" , "LastName": "Smith", "Email": "js@mail.com", "PasswordHash" : "pass1234"}' | jq
+     
+curl -X POST http://localhost:3000/users/create \
+     -H "Content-Type: application/json" \
+     -d '{"FirstName": "John" , "LastName": "Doe", "Email": "jd@mail.com", "PasswordHash" : "pass123"}' | jq
 
 curl -X DELETE http://localhost:3000/users/2
 
