@@ -44,6 +44,8 @@ class OverclockSequelize extends Sequelize {
                 PasswordHash: 'password'
             }
         );
+        await u1.save();
+        await u2.save();
         const p1 = Post.build(
             {
                 Title: "This is a post",
@@ -62,19 +64,65 @@ class OverclockSequelize extends Sequelize {
                 UserId: u2.dataValues.id
             }
         );
-        await u1.save();
-        await u2.save();
         await p1.save();
         await p2.save();
     }
     async GetUserById(ID : number){
         let user = await User.findOne({
-            where : {id: ID}
+            where : {id: ID},
+            attributes: ['id',
+                         'FirstName', 
+                         'LastName',
+                         'Email'
+            ]
         });
         return user;
     }
     async GetAllUsers(){
-        let users = await User.findAll();
+        let users = await User.findAll({
+            attributes: ['id',
+                         'FirstName', 
+                         'LastName',
+                         'Email'
+            ]
+        });
+        return users;
+    }
+    async GetPostById(ID : number){
+        let user = await Post.findOne({
+            where : {id: ID},
+            attributes: ['id',
+                         'Title', 
+                         'Body',
+                         'isDraft',
+            ],
+            include : [{
+                model: User,
+                attributes: ['id',
+                         'FirstName', 
+                         'LastName',
+                         'Email'
+            ]
+            }]
+        });
+        return user;
+    }
+    async GetAllPosts(){
+        let users = await Post.findAll({
+            attributes: ['id',
+                         'Title', 
+                         'Body',
+                         'isDraft',
+                        ],
+            include : [{
+                model: User,
+            attributes: ['id',
+                         'FirstName', 
+                         'LastName',
+                         'Email'
+            ]
+            }]
+        });
         return users;
     }
 }

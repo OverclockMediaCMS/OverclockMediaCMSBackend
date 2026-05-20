@@ -31,6 +31,20 @@ app.get("/users/:id", async (req, res) => {
   res.json(obj);
 });
 
+app.get("/posts", async (req, res)=> {
+  let result = await sequelize.GetAllPosts();
+  res.json(result);
+});
+
+app.get("/posts/:id", async (req, res) => {
+  const {id} = req.params;
+  const obj = await sequelize.GetPostById(parseInt(id));
+  if (!obj){
+    return res.status(404).send("not found");
+  }
+  res.json(obj);
+});
+
 app.post("/users/create", (req, res) => {
   const { name } = req.body;
   res.send();
