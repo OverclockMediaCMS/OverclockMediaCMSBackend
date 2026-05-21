@@ -45,9 +45,10 @@ app.get("/posts/:id", async (req, res) => {
   res.json(obj);
 });
 
-app.post("/users/create", (req, res) => {
-  const { name } = req.body;
-  res.send();
+app.post("/users/create", async (req, res) => {
+  const { FirstName, LastName, Email, PasswordHash } = req.body;
+  const obj = await sequelize.PostUser(FirstName, LastName, Email, PasswordHash);
+  res.json(obj);
 });
 
 app.delete("/users/:id", (req, res) => {
