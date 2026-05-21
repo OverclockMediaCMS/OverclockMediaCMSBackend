@@ -51,9 +51,13 @@ app.post("/users/create", async (req, res) => {
   res.json(obj);
 });
 
-app.delete("/users/:id", (req, res) => {
+app.delete("/users/:id", async (req, res) => {
   const {id} = req.params;
-  res.send("Deleted id:" + id);  
+  const obj = await sequelize.DeleteUserById(parseInt(id));
+  if (!obj){
+    return res.status(404).send("not found");
+  }
+  res.json(obj);
 });
 
 app.listen(PORT, () => {

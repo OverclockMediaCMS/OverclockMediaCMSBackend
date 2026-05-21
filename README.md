@@ -70,7 +70,7 @@ curl -X POST http://localhost:3000/users/create \
      -H "Content-Type: application/json" \
      -d '{"FirstName": "John" , "LastName": "Doe", "Email": "jd@mail.com", "PasswordHash" : "pass123"}' | jq
 
-curl -X DELETE http://localhost:3000/users/2
+curl -X DELETE http://localhost:3000/users/3
 
 curl -X
 

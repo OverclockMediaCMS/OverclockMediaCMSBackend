@@ -149,6 +149,21 @@ class OverclockSequelize extends Sequelize {
             
         });
     }
+    // POST Media function
+    
+    async DeleteUserById(ID : number){
+        let user = await User.findOne({
+            where : {id: ID},
+            attributes: ['id',
+                         'FirstName', 
+                         'LastName',
+                         'Email'
+            ]
+        });
+        await user!.destroy();
+        return user;
+    }
+    
 }
 export const sequelize = new OverclockSequelize("OverclockMediaCMS", "tim", "123", {
     host: "localhost",
