@@ -54,7 +54,7 @@ Command:
 
 Test Case 3: Create New user
 Command: 
-     curl -X POST http://localhost:3000/users/create \
+curl -X POST http://localhost:3000/users/create \
      -H "Content-Type: application/json" \
      -d '{"FirstName": "u3", "LastName": "u3", "Email": "u3@email.com", "PasswordHash": "password" '}'
 
