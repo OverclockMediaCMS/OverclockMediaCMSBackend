@@ -150,7 +150,7 @@ class OverclockSequelize extends Sequelize {
         });
     }
 }
-export const sequelize = new OverclockSequelize("OverclockMediaCMS", "tim", "123", {
+export const sequelize = new OverclockSequelize("OverclockMediaCMS", "Sirawit", "1234", {
     host: "localhost",
     dialect : "mssql",
     dialectOptions: {
