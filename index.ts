@@ -36,6 +36,16 @@ app.get("/posts", async (req, res)=> {
   res.json(result);
 });
 
+app.get("/media", async (req, res)=> {
+  let result = await sequelize.GetAllMedia();
+  res.json(result);
+});
+
+app.get("/media/:like", async (req, res)=> {
+  let name = req.params.like;
+  let result = await sequelize.GetMediaThatContains(name);
+  res.json(result);
+});
 app.get("/posts/:id", async (req, res) => {
   const {id} = req.params;
   const obj = await sequelize.GetPostById(parseInt(id));

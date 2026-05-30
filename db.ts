@@ -1,14 +1,5 @@
-import { Sequelize, DataTypes, } from 'sequelize';
+import { Sequelize, DataTypes, Op } from 'sequelize';
 
-/* need to create new user in mssql, you can do this in the GUI in SSMS or using this query, check policy just stop it from enforcing password rules
-
-CREATE LOGIN [NewUser] WITH PASSWORD = 'password', CHECK_POLICY = OFF;
-GO
-
-I believe there is a CLI command to create the DB but it isnt automatically created when you run the program
-You can also just manually create the DB in SSMS and make the owner your user! otherwise you wont be able to access it.
-
-*/
 class OverclockSequelize extends Sequelize {
   async tryConnect() {
     try {
@@ -73,6 +64,26 @@ class OverclockSequelize extends Sequelize {
         UserId: u2.dataValues.id
       }
     );
+    const m1 = Media.build(
+      {
+        Title: "photo1",
+        FilePath : "media/photos/photo1",
+        FileExtension: "jpg", 
+        UserId: u1.dataValues.id,
+        Date: new Date(),
+      }
+    );
+    const m2 = Media.build(
+      {
+        Title: "video1",
+        FilePath : "media/videos/video1",
+        FileExtension: "mp4", 
+        UserId: u1.dataValues.id,
+        Date: new Date(),
+      }
+    );
+    await m1.save();
+    await m2.save();
     await p1.save();
     await p2.save();
     await (p1 as any).addTags(tag1);
@@ -101,13 +112,14 @@ class OverclockSequelize extends Sequelize {
     return users;
   }
   async GetPostById(ID: number) {
-    let user = await Post.findOne({
+    let post = await Post.findOne({
       where: { id: ID },
       attributes: ['id',
-        'Title',
-        'Body',
-        'isDraft',
-      ],
+          'Title',
+          'Body',
+          'isDraft',
+          'Date',
+        ],
       include: [{
         model: User,
         attributes: ['id',
@@ -117,15 +129,18 @@ class OverclockSequelize extends Sequelize {
         ]
       }]
     });
-    return user;
+    return post;
   }
   async GetAllPosts() {
-    let users = await Post.findAll({
+    let posts = await Post.findAll({
+      order : [['Date', 'DESC']],
+      limit: 5,
       attributes: ['id',
-        'Title',
-        'Body',
-        'isDraft',
-      ],
+          'Title',
+          'Body',
+          'isDraft',
+          'Date',
+        ],
       include: [{
         model: User,
         attributes: ['id',
@@ -142,7 +157,7 @@ class OverclockSequelize extends Sequelize {
         through: { attributes: [] }
       }]
     });
-    return users;
+    return posts;
   }
   async GetMediaById(ID: number) {
     let media = await Media.findOne({
@@ -151,7 +166,34 @@ class OverclockSequelize extends Sequelize {
     return media;
   }
   async GetAllMedia() {
-    let media = await Media.findAll();
+    let media = await Media.findAll({
+      include: {
+        model: User,
+        attributes: ['id',
+          'FirstName',
+          'LastName',
+          'Email',
+        ]
+      }
+    });
+    return media;
+  }
+  async GetMediaThatContains(word : string) {
+    let media = await Media.findAll({
+      where : {
+        Title : {
+          [Op.substring] : word
+        }
+      },
+      include: {
+        model: User,
+        attributes: ['id',
+          'FirstName',
+          'LastName',
+          'Email'
+        ]
+      }
+    });
     return media;
   }
   async PostUser(fName: string, lName: string, email: string, passwordHash: string) {
@@ -165,10 +207,19 @@ class OverclockSequelize extends Sequelize {
   }
   async PostPost(title: string, body: string, isDraft: boolean, date: string) {
     const p = await Post.create({
-
+      
     });
   }
 }
+/* need to create new user in mssql, you can do this in the GUI in SSMS or using this query, check policy just stop it from enforcing password rules
+
+CREATE LOGIN [NewUser] WITH PASSWORD = 'password', CHECK_POLICY = OFF;
+GO
+
+I believe there is a CLI command to create the DB but it isnt automatically created when you run the program
+You can also just manually create the DB in SSMS and make the owner your user! otherwise you wont be able to access it.
+
+*/
 export const sequelize = new OverclockSequelize("OverclockMediaCMS", "rory", "Password123!", {
   host: "localhost",
   dialect: "mssql",
@@ -227,6 +278,10 @@ const Media = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    Date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    }
   },
   {
     timestamps: false
