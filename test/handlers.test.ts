@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import express from 'express';
-import { GetUserByIdHandler, GetUserHandler, IndexRequestHandler, SearchUsersHandler } from '../app';
+import { GetUserByIdHandler, GetUserHandler, IndexRequestHandler, SearchUsersHandler } from '../index';
 
 class SendPipe {
 
