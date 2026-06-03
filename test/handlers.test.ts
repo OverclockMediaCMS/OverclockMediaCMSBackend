@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import express from 'express';
-import { GetMediaContainsNameHandler, GetMediaHandler, GetPostByIdHandler, GetPostsHandler, GetTagsHandler, GetUserByIdHandler, GetUserHandler, IndexRequestHandler, PostUserHandler, SearchUsersHandler } from '../index';
+import { DeleteUserByIdHandler, GetMediaContainsNameHandler, GetMediaHandler, GetPostByIdHandler, GetPostsHandler, GetTagsHandler, GetUserByIdHandler, GetUserHandler, IndexRequestHandler, PostUserHandler, SearchUsersHandler } from '../index';
 
 class SendPipe {
 
@@ -392,5 +392,27 @@ test('Checks if PostUser handler inserts new user correctly',
 
         expect(pipe.data[0]).toEqual(expectedResponse);
         expect(pipe.data[1]).toEqual(expectedGetUser);
+    }
+)
+
+test('Checks if DeleteUser handler deletes data correctly',
+    async () => {
+        const pipe = new SendPipe();
+        const res = {
+            status: pipe.getStatusCallback(),
+            send: pipe.getCallback(),
+            json: pipe.getJSONCallback()
+        };
+        const req = {
+            params : { id : 1 }
+        }
+        await DeleteUserByIdHandler(req as any, res as any);
+        await GetUserByIdHandler(req as any, res as any)
+
+        const expectedResponse = {"id":1,"FirstName":"u1","LastName":"u1","Email":"u1@email.com"}
+
+        expect(pipe.data[0]).toEqual(expectedResponse);
+        expect(pipe.data[1]).toEqual("Status: 404");
+        expect(pipe.data[2]).toEqual("not found");
     }
 )
