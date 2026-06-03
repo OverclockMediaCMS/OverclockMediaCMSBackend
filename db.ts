@@ -176,7 +176,10 @@ class OverclockSequelize extends Sequelize {
         ]
       }
     });
-    return media;
+  }
+  async GetAllTags() {
+    let tags = await Tag.findAll({});
+    return tags;
   }
   async GetMediaThatContains(word : string) {
     let media = await Media.findAll({
