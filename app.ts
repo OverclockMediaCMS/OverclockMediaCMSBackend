@@ -1,4 +1,4 @@
-import express, { json } from 'express';
+import express from 'express';
 import {sequelize} from './db.ts'
 import cors from 'cors';
 
@@ -7,29 +7,50 @@ await sequelize.tryConnect();
 await sequelize.seedDummyData();
 
 const app = express();
-const PORT = "3000";
+const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
+
+export const IndexRequestHandler = (req: express.Request, res: express.Response) => {
+  console.log(req, res);
   res.send("Hello Overclock Media Backend!");
   console.log("Response sent");
-});
+}
 
-
-app.get("/users", async (req, res)=> {
-  let result = await sequelize.GetAllUsers();
+export const GetUserHandler = async (req: express.Request, res: express.Response)=> {
+  const result = await sequelize.GetAllUsers();
   res.json(result);
-});
+}
 
-app.get("/users/:id", async (req, res) => {
+export const GetUserByIdHandler = async (req: express.Request, res: express.Response) => {
   const {id} = req.params;
-  const obj = await sequelize.GetUserById(parseInt(id));
+  const obj = await sequelize.GetUserById(parseInt(id as string));
   if (!obj){
     return res.status(404).send("not found");
   }
   res.json(obj);
-});
+}
+
+export const SearchUsersHandler = async (req: express.Request, res: express.Response) => {
+  const { FirstName, LastName, Email } = req.query;
+
+  const obj = await sequelize.SearchUsers({
+    FirstName: FirstName as string,
+    LastName: LastName as string,
+    Email: Email as string
+  });
+
+  res.json(obj);
+};
+
+app.get("/", IndexRequestHandler);
+
+app.get("/users", GetUserHandler);
+
+app.get("/users/:id", GetUserByIdHandler);
+
+app.get("/users/search", SearchUsersHandler);
 
 app.get("/posts", async (req, res)=> {
   let result = await sequelize.GetAllPosts();

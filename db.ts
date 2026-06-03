@@ -1,5 +1,5 @@
-import {Sequelize, DataTypes, } from 'sequelize';
-
+import {Sequelize, DataTypes, Op, } from 'sequelize';
+import SQLite from 'sqlite3';
 /* need to create new user in mssql, you can do this in the GUI in SSMS or using this query, check policy just stop it from enforcing password rules
 
 CREATE LOGIN [NewUser] WITH PASSWORD = 'password', CHECK_POLICY = OFF;
@@ -135,6 +135,27 @@ class OverclockSequelize extends Sequelize {
         let media = await Media.findAll();
         return media;
     }
+    async SearchUsers(filters: { FirstName?: string; LastName?: string; Email?: string }) {
+    const whereClause: any = {};
+
+    if (filters.FirstName) {
+        whereClause.FirstName = { [Op.like]: `%${filters.FirstName}%` };
+    }
+    if (filters.LastName) {
+        whereClause.LastName = { [Op.like]: `%${filters.LastName}%` };
+    }
+    if (filters.Email) {
+        whereClause.Email = { [Op.like]: `%${filters.Email}%` };
+    }
+
+    let users = await User.findAll({
+        where: whereClause,
+        attributes: ['id', 'FirstName', 'LastName', 'Email'],
+        raw: true
+    });
+
+    return users;
+}
     async PostUser(fName : string, lName : string, email : string, passwordHash : string){
         const u = await User.create({
             FirstName: fName,
@@ -144,36 +165,92 @@ class OverclockSequelize extends Sequelize {
         });
         return u.toJSON();
     }
-    async PostPost(title : string, body : string, isDraft : boolean, date : string){
+    async PostPost(title : string, body : string, is_draft : boolean, date : string){
         const p = await Post.create({
-            
+            Title : title,
+            Body : body,
+            isDraft : is_draft,
+            Date : date
         });
+        return p.toJSON();
     }
-    // POST Media function
-    
+    async PostMedia(title : string, filePath : string, fileExtension : string){
+        const m = await Media.create({
+            Title : title,
+            FilePath : filePath,
+            fileExtension : fileExtension
+        });
+        return m.toJSON();
+    }
+    async PostTag(title : string){
+        const t = await Tag.create({
+            Title : title
+        });
+        return t.toJSON();
+    }
+
     async DeleteUserById(ID : number){
         let user = await User.findOne({
             where : {id: ID},
-            attributes: ['id',
-                         'FirstName', 
-                         'LastName',
-                         'Email'
+            attributes: [
+                'id',
+                'FirstName', 
+                'LastName',
+                'Email'
             ]
         });
-        await user!.destroy();
+        if (!user) return null;
+    
+        await user.destroy();
         return user;
     }
     
-}
-export const sequelize = new OverclockSequelize("OverclockMediaCMS", "tim", "123", {
-    host: "localhost",
-    dialect : "mssql",
-    dialectOptions: {
-        options:{
-            trustServerCertificate: true
-        }
+    async DeletePostById(ID : number){
+        let post = await Post.findOne({
+            where : {id : ID}
+        });
+        await post!.destroy();
+        return post;
     }
-});
+
+    constructor(config: OverclockSequelizeConfig) {
+        super(config.database, config.username, config.password, config.config);
+    }
+}
+
+export type OverclockSequelizeConfig = {
+    database: string,
+    username: string,
+    password: string,
+    config: any
+}
+
+export const ProductionConfig = { 
+            host: "localhost",
+            dialect : "mssql",
+            dialectOptions: {
+                options:{
+                trustServerCertificate: true
+                }
+            }
+        };
+
+export const TestConfig = {
+
+        dialect : "sqlite",
+        storage: ':memory:',
+        dialectOptions: {
+            // Your sqlite3 options here
+            // for instance, this is how you can configure the database opening mode:
+            mode: SQLite.OPEN_READWRITE | SQLite.OPEN_CREATE | SQLite.OPEN_FULLMUTEX,
+        },
+}
+
+export const sequelize = new OverclockSequelize(
+    {
+        database: "OverclockMediaCMS", username: "tim", password: "123", 
+        config: TestConfig
+    });
 
 const User = sequelize.define(
             'User',
@@ -184,7 +261,11 @@ const User = sequelize.define(
                 },
                 PasswordHash : {
                     type: DataTypes.STRING,
-                },
+                    // set(value) {
+                    // Storing passwords in plaintext in the database is terrible.
+                    // Hashing the value with an appropriate cryptographic hash function is better.
+                    //   this.setDataValue('password', hash(value));
+                },  
                 FirstName : {
                     type: DataTypes.STRING,
                 },
@@ -256,17 +337,17 @@ const MediaPost = sequelize.define(
             'MediaPost',
             {
             MediaId: {
-              type: DataTypes.INTEGER,
-            references: {
+                type: DataTypes.INTEGER,
+                references: {
                   model: Media, 
                   key: 'id',
                 },
             },
             PostId: {
                 type: DataTypes.INTEGER,
-            references: {
-              model: Post, 
-              key: 'id',
+                references: {
+                    model: Post, 
+                    key: 'id',
                 },
             },
             },

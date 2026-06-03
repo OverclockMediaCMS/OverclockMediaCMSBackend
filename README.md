@@ -26,8 +26,9 @@ http://localhost:3000/~
 ## POST
 
 /users/create
-/users/:id/posts/create
-/users/:id/media/create
+/posts/create
+/media/create
+/tags/create
 
 ## PUT
 
