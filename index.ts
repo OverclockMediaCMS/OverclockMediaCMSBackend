@@ -44,6 +44,51 @@ export const SearchUsersHandler = async (req: express.Request, res: express.Resp
   res.json(obj);
 };
 
+export const GetPostsHandler = async (req: express.Request, res: express.Response) => {
+  let result = await sequelize.GetAllPosts();
+  res.json(result);
+};
+
+export const GetMediaHandler = async (req: express.Request, res: express.Response) => {
+  let result = await sequelize.GetAllMedia();
+  res.json(result);
+};
+
+export const GetMediaContainsNameHandler = async (req: express.Request, res: express.Response) => {
+  let name = req.params.like;
+  let result = await sequelize.GetMediaThatContains(name as string);
+  res.json(result);
+};
+
+export const GetTagsHandler = async (req: express.Request, res: express.Response) => {
+  let result = await sequelize.GetAllTags();
+  res.json(result);
+};
+
+export const GetPostByIdHandler = async (req: express.Request, res: express.Response) => {
+  const {id} = req.params;
+  const obj = await sequelize.GetPostById(parseInt(id as string));
+  if (!obj){
+    return res.status(404).send("not found");
+  }
+  res.json(obj);
+};
+
+export const PostUserHandler = async (req: express.Request, res: express.Response) => {
+  const { FirstName, LastName, Email, PasswordHash } = req.body;
+  const obj = await sequelize.PostUser(FirstName, LastName, Email, PasswordHash);
+  res.json(obj);
+};
+
+export const DeleteUserByIdHandler = async (req: express.Request, res: express.Response) => {
+  const {id} = req.params;
+  const obj = await sequelize.DeleteUserById(parseInt(id as string));
+  if (!obj){
+    return res.status(404).send("not found");
+  }
+  res.json(obj);
+};
+
 app.get("/", IndexRequestHandler);
 
 app.get("/users", GetUserHandler);
@@ -52,51 +97,19 @@ app.get("/users/:id", GetUserByIdHandler);
 
 app.get("/users/search", SearchUsersHandler);
 
-app.get("/posts", async (req, res)=> {
-  let result = await sequelize.GetAllPosts();
-  res.json(result);
-});
+app.get("/posts", GetPostsHandler);
 
-app.get("/media", async (req, res)=> {
-  let result = await sequelize.GetAllMedia();
-  res.json(result);
-});
+app.get("/media", GetMediaHandler);
 
-app.get("/media/:like", async (req, res)=> {
-  let name = req.params.like;
-  let result = await sequelize.GetMediaThatContains(name);
-  res.json(result);
-});
+app.get("/media/:like", GetMediaContainsNameHandler);
 
+app.get("/tags", GetTagsHandler);
 
-app.get("/tags", async (req, res)=> {
-  let result = await sequelize.GetAllTags();
-  res.json(result);
-});
+app.get("/posts/:id", GetPostByIdHandler);
 
-app.get("/posts/:id", async (req, res) => {
-  const {id} = req.params;
-  const obj = await sequelize.GetPostById(parseInt(id));
-  if (!obj){
-    return res.status(404).send("not found");
-  }
-  res.json(obj);
-});
+app.post("/users/create", PostUserHandler);
 
-app.post("/users/create", async (req, res) => {
-  const { FirstName, LastName, Email, PasswordHash } = req.body;
-  const obj = await sequelize.PostUser(FirstName, LastName, Email, PasswordHash);
-  res.json(obj);
-});
-
-app.delete("/users/:id", async (req, res) => {
-  const {id} = req.params;
-  const obj = await sequelize.DeleteUserById(parseInt(id));
-  if (!obj){
-    return res.status(404).send("not found");
-  }
-  res.json(obj);
-});
+app.delete("/users/:id", DeleteUserByIdHandler);
 
 app.listen(PORT, () => {
   console.log(`app listening on port ${PORT}`);
