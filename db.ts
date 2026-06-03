@@ -127,7 +127,9 @@ class OverclockSequelize extends Sequelize {
           'LastName',
           'Email'
         ]
-      }]
+      },
+    {model: Comment, include: [{model: User, attributes: ['id', 'FirstName', 'LastName']}]},
+    {model: Tag}]
     });
     return post;
   }
@@ -149,13 +151,8 @@ class OverclockSequelize extends Sequelize {
           'Email'
         ]
       },
-      {
-        model: Tag,
-        attributes: ['id',
-          'Title'
-        ],
-        through: { attributes: [] }
-      }]
+      { model: Tag},
+      { model : Comment}],
     });
     return posts;
   }
@@ -248,6 +245,17 @@ const User = sequelize.define(
     },
     LastName: {
       type: DataTypes.STRING,
+    },
+    Role: {
+      type: DataTypes.STRING,
+    },
+    MobilePhone: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    InternalPhone: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
   },
   {
@@ -357,13 +365,28 @@ const TagPost = sequelize.define(
   {
     timestamps: false
   }
+);
+const Comment = sequelize.define(
+    'Comment',
+  {
+    Description: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    Date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    }
+  },
 )
+Comment.belongsTo(User);
+Post.hasMany(Comment);
 User.hasMany(Post);
 User.hasMany(Media);
 Post.belongsTo(User);
 Media.belongsTo(User);
-Tag.belongsToMany(Post, { through: 'TagPost', foreignKey: "TagId" });
-Post.belongsToMany(Tag, { through: 'TagPost', foreignKey: "PostId" });
-Media.belongsToMany(Post, { through: 'MediaPost', foreignKey: "MediaId" });
-Post.belongsToMany(Media, { through: 'MediaPost', foreignKey: "PostId" });
+Tag.belongsToMany(Post, { through: TagPost, foreignKey: "TagId" });
+Post.belongsToMany(Tag, { through: TagPost, foreignKey: "PostId" });
+Media.belongsToMany(Post, { through: MediaPost, foreignKey: "MediaId" });
+Post.belongsToMany(Media, { through: MediaPost, foreignKey: "PostId" });
 

@@ -47,6 +47,7 @@ app.get("/media/:like", async (req, res)=> {
   res.json(result);
 });
 
+
 app.get("/tags", async (req, res)=> {
   let result = await sequelize.GetAllTags();
   res.json(result);
