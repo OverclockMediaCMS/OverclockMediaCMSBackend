@@ -93,11 +93,6 @@ class OverclockSequelize extends Sequelize {
   async GetUserById(ID: number) {
     let user = await User.findOne({
       where: { id: ID },
-      attributes: ['id',
-        'FirstName',
-        'LastName',
-        'Email'
-      ]
     });
     return user;
   }
@@ -178,6 +173,13 @@ class OverclockSequelize extends Sequelize {
     let tags = await Tag.findAll({});
     return tags;
   }
+  async GetCommentsByPostId(id : number){
+    let c = await Comment.findAll({
+      where : { PostId : id},
+      include: [{model: User, attributes: ['id', 'FirstName', 'LastName']}]
+    });
+    return c;
+  }
   async GetMediaThatContains(word : string) {
     let media = await Media.findAll({
       where : {
@@ -209,6 +211,17 @@ class OverclockSequelize extends Sequelize {
     const p = await Post.create({
       
     });
+  }
+  async PostComment(description: string, userid: number, postid: number ){
+    const c = Comment.build(
+      {
+        Description: description,
+        Date: new Date(),
+        UserId: userid,
+        PostId: postid,
+      }
+    );
+    await c.save();
   }
 }
 /* need to create new user in mssql, you can do this in the GUI in SSMS or using this query, check policy just stop it from enforcing password rules
