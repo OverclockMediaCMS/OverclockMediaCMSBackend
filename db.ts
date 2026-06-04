@@ -168,6 +168,7 @@ class OverclockSequelize extends Sequelize {
         ]
       }
     });
+    return media;
   }
   async GetAllTags() {
     let tags = await Tag.findAll({});
@@ -197,6 +198,28 @@ class OverclockSequelize extends Sequelize {
       }
     });
     return media;
+  }
+  async GetPostThatContains(word : string) {
+    let p = await Post.findAll({
+      where : {
+        Title : {
+          [Op.substring] : word
+        }
+      },
+      include: [
+        {
+          model: User,
+          attributes: ['id',
+            'FirstName',
+            'LastName',
+            'Email'
+          ]
+        },
+        {model: Tag },
+        {model: Comment}
+    ],
+    });
+    return p;
   }
   async PostUser(fName: string, lName: string, email: string, passwordHash: string) {
     const u = await User.create({

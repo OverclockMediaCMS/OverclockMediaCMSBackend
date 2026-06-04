@@ -47,6 +47,11 @@ app.get("/media/:like", async (req, res)=> {
   res.json(result);
 });
 
+app.get("/posts/:like", async (req, res)=> {
+  let name = req.params.like;
+  let result = await sequelize.GetPostThatContains(name);
+  res.json(result);
+});
 
 app.get("/tags", async (req, res)=> {
   let result = await sequelize.GetAllTags();
@@ -62,7 +67,7 @@ app.get("/comments/:postid", async (req, res) => {
   res.json(obj);
 });
 
-app.get("/posts/:id", async (req, res) => {
+app.get("/postsbyid/:id", async (req, res) => {
   const {id} = req.params;
   const obj = await sequelize.GetPostById(parseInt(id));
   if (!obj){
