@@ -109,6 +109,27 @@ app.get("/posts/:id", GetPostByIdHandler);
 
 app.post("/users/create", PostUserHandler);
 
+app.post("/comment", async (req, res) => {
+  const {Description, UserId, PostId} = req.body;
+  const obj = await sequelize.PostComment(Description, UserId, PostId);
+  res.json(obj);
+});
+
+app.get("/posts/:like", async (req, res)=> {
+  let name = req.params.like;
+  let result = await sequelize.GetPostThatContains(name);
+  res.json(result);
+});
+
+app.get("/comments/:postid", async (req, res) => {
+  const {postid} = req.params;
+  const obj = await sequelize.GetCommentsByPostId(parseInt(postid));
+  if (!obj){
+    return res.status(404).send("not found");
+  }
+  res.json(obj);
+});
+
 app.delete("/users/:id", DeleteUserByIdHandler);
 
 app.listen(PORT, () => {

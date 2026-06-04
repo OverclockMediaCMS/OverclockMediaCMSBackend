@@ -93,11 +93,6 @@ class OverclockSequelize extends Sequelize {
   async GetUserById(ID: number) {
     let user = await User.findOne({
       where: { id: ID },
-      attributes: ['id',
-        'FirstName',
-        'LastName',
-        'Email'
-      ]
     });
     return user;
   }
@@ -202,6 +197,13 @@ class OverclockSequelize extends Sequelize {
     let tags = await Tag.findAll({});
     return tags;
   }
+  async GetCommentsByPostId(id : number){
+    let c = await Comment.findAll({
+      where : { PostId : id},
+      include: [{model: User, attributes: ['id', 'FirstName', 'LastName']}]
+    });
+    return c;
+  }
   async GetMediaThatContains(word : string) {
     let media = await Media.findAll({
       where : {
@@ -219,6 +221,28 @@ class OverclockSequelize extends Sequelize {
       }
     });
     return media;
+  }
+  async GetPostThatContains(word : string) {
+    let p = await Post.findAll({
+      where : {
+        Title : {
+          [Op.substring] : word
+        }
+      },
+      include: [
+        {
+          model: User,
+          attributes: ['id',
+            'FirstName',
+            'LastName',
+            'Email'
+          ]
+        },
+        {model: Tag },
+        {model: Comment}
+    ],
+    });
+    return p;
   }
   async PostUser(fName: string, lName: string, email: string, passwordHash: string) {
     const u = await User.create({
@@ -279,6 +303,17 @@ class OverclockSequelize extends Sequelize {
 
   constructor(config: OverclockSequelizeConfig) {
     super(config.database, config.username, config.password, config.config);
+  }
+  async PostComment(description: string, userid: number, postid: number ){
+    const c = Comment.build(
+      {
+        Description: description,
+        Date: new Date(),
+        UserId: userid,
+        PostId: postid,
+      }
+    );
+    await c.save();
   }
 }
 
