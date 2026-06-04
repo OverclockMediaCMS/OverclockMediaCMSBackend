@@ -244,12 +244,15 @@ class OverclockSequelize extends Sequelize {
     });
     return p;
   }
-  async PostUser(fName: string, lName: string, email: string, passwordHash: string) {
+  async PostUser(fName: string, lName: string, email: string, passwordHash: string, internalPhone : number, mobilePhone: number, role: string) {
     const u = await User.create({
       FirstName: fName,
       LastName: lName,
       Email: email,
-      PasswordHash: passwordHash
+      PasswordHash: passwordHash,
+      InternalPhone : internalPhone,
+      MobilePhone : mobilePhone,
+      Role : role
     });
     return u.toJSON();
   }
@@ -390,11 +393,11 @@ const User = sequelize.define(
       type: DataTypes.STRING,
     },
     MobilePhone: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     InternalPhone: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: true,
     },
   },

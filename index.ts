@@ -75,8 +75,8 @@ export const GetPostByIdHandler = async (req: express.Request, res: express.Resp
 };
 
 export const PostUserHandler = async (req: express.Request, res: express.Response) => {
-  const { FirstName, LastName, Email, PasswordHash } = req.body;
-  const obj = await sequelize.PostUser(FirstName, LastName, Email, PasswordHash);
+  const { FirstName, LastName, Email, PasswordHash, InternalPhone, MobilePhone, Role } = req.body;
+  const obj = await sequelize.PostUser(FirstName, LastName, Email, PasswordHash, InternalPhone, MobilePhone, Role);
   res.json(obj);
 };
 

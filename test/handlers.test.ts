@@ -368,8 +368,11 @@ test('Checks if PostUser handler inserts new user correctly',
             body : {
                 FirstName : "Tim",
                 LastName : "Chalamet",
+                InternalPhone : "0422111222",
                 Email : "tim@email.com",
-                PasswordHash : "1234"
+                MobilePhone : "0400111222",
+                PasswordHash : "1234",
+                Role : "TBD"
             }
         }
         
@@ -378,15 +381,22 @@ test('Checks if PostUser handler inserts new user correctly',
 
         const expectedGetUser = {
             "FirstName" : "Tim",
+            "InternalPhone" : "0422111222",
             "LastName" : "Chalamet",
+            "MobilePhone" : "0400111222",
+            "Role" : "TBD",
             "Email" : "tim@email.com",
+            "PasswordHash" : "1234",
             "id" : 3
         }
         const expectedResponse = {
             "FirstName" : "Tim",
+            "InternalPhone" : "0422111222",
             "LastName" : "Chalamet",
+            "MobilePhone" : "0400111222",
             "Email" : "tim@email.com",
             "PasswordHash" : "1234",
+            "Role" : "TBD",
             "id" : 3
         }
 
