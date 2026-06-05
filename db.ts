@@ -172,6 +172,7 @@ class OverclockSequelize extends Sequelize {
             return;
         }
     }
+    
     async RegisterUser(email: string, fname: string, lname: string, password: string){
         //check if user exists
         const u = await User.findOne({
@@ -198,6 +199,7 @@ class OverclockSequelize extends Sequelize {
         newUser.save();
     }
 }
+
 export const sequelize = new OverclockSequelize("OverclockMediaCMS", "tim", "123", {
     host: "localhost",
     dialect : "mssql",
