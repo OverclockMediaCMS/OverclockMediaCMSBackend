@@ -29,7 +29,7 @@ export const GetUserByIdHandler = async (req: express.Request, res: express.Resp
   const {id} = req.params;
   const obj = await sequelize.GetUserById(parseInt(id as string));
   if (!obj){
-    return res.status(404).send("not found");
+    res.status(404).send("not found");
   }
   res.json(obj);
 }
@@ -71,7 +71,7 @@ export const GetPostByIdHandler = async (req: express.Request, res: express.Resp
   const {id} = req.params;
   const obj = await sequelize.GetPostById(parseInt(id as string));
   if (!obj){
-    return res.status(404).send("not found");
+    res.status(404).send("not found");
   }
   res.json(obj);
 };
@@ -98,7 +98,7 @@ export const GetCommentsByPostIdHandler = async (req: express.Request, res: expr
   const {postid} = req.params;
   const obj = await sequelize.GetCommentsByPostId(parseInt(postid as string));
   if (!obj){
-    return res.status(404).send("not found");
+    res.status(404).send("not found");
   }
   res.json(obj);
 };
@@ -107,7 +107,7 @@ export const RegisterUserHandler = async (req: express.Request, res: express.Res
   const {Email, FirstName, LastName, Password} = req.body;
   const isSuccess = await sequelize.RegisterUser(Email, FirstName, LastName, Password);
   if (!isSuccess){
-    return res.status(409).send("This email address is already registered.");
+    res.status(409).send("This email address is already registered.");
   }
   res.status(200).send("Register user successful");
 }
@@ -116,9 +116,9 @@ export const LoginUserHandler = async (req: express.Request, res: express.Respon
   const {Email, Password} = req.body;
   const isSuccess = await sequelize.LoginUser(Email, Password);
   if (!isSuccess){
-    return res.status(401).send("Invaild Email or Password");
+    res.status(401).send("Invaild Email or Password");
   } else {
-    return res.status(200).send("Login successful");
+    res.status(200).send("Login successful");
   }
 }
 
@@ -126,7 +126,7 @@ export const DeleteUserByIdHandler = async (req: express.Request, res: express.R
   const {id} = req.params;
   const obj = await sequelize.DeleteUserById(parseInt(id as string));
   if (!obj){
-    return res.status(404).send("not found");
+    return res.status(404).send("Not found");
   }
   res.json(obj);
 };
