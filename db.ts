@@ -302,6 +302,18 @@ class OverclockSequelize extends Sequelize {
       await user.destroy();
       return user;
   }
+
+  async UpdateUserById(ID: number, updateData: { FirstName: string; LastName: string; Email: string; Role: string; MobilePhone: string; InternalPhone: string }) {
+  // Find User in db by ID
+  const user = await User.findOne({ where: { id: ID } });
+  // If found then update
+  if (user) {
+    await user.update(updateData);
+    return user.toJSON(); 
+  }
+  // If not found return null
+  return null;
+}
   
   async DeletePostById(ID : number){
       let post = await Post.findOne({
