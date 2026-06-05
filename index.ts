@@ -1,6 +1,7 @@
 import express from 'express';
 import {sequelize} from './db.ts'
 import cors from 'cors';
+import helmet from 'helmet';
 
 //instructions for setting up connection in db.ts
 await sequelize.tryConnect();
@@ -10,6 +11,7 @@ const app = express();
 const PORT = 3000;
 app.use(cors());
 app.use(express.json());
+app.use(helmet());
 
 
 export const IndexRequestHandler = (req: express.Request, res: express.Response) => {
@@ -18,7 +20,7 @@ export const IndexRequestHandler = (req: express.Request, res: express.Response)
   console.log("Response sent");
 }
 
-export const GetUserHandler = async (req: express.Request, res: express.Response)=> {
+export const GetUsersHandler = async (req: express.Request, res: express.Response)=> {
   const result = await sequelize.GetAllUsers();
   res.json(result);
 }
@@ -80,6 +82,27 @@ export const PostUserHandler = async (req: express.Request, res: express.Respons
   res.json(obj);
 };
 
+export const PostCommentHandler = async (req: express.Request, res: express.Response) => {
+  const {Description, UserId, PostId} = req.body;
+  const obj = await sequelize.PostComment(Description, UserId, PostId);
+  res.json(obj);
+}
+
+export const SearchPostByNameHandler = async (req: express.Request, res: express.Response) => {
+  let name = req.params.like;
+  let result = await sequelize.GetPostThatContains(name as string);
+  res.json(result);
+};
+
+export const GetCommentsByPostIdHandler = async (req: express.Request, res: express.Response) => {
+  const {postid} = req.params;
+  const obj = await sequelize.GetCommentsByPostId(parseInt(postid as string));
+  if (!obj){
+    return res.status(404).send("not found");
+  }
+  res.json(obj);
+};
+
 export const DeleteUserByIdHandler = async (req: express.Request, res: express.Response) => {
   const {id} = req.params;
   const obj = await sequelize.DeleteUserById(parseInt(id as string));
@@ -89,13 +112,14 @@ export const DeleteUserByIdHandler = async (req: express.Request, res: express.R
   res.json(obj);
 };
 
+
 app.get("/", IndexRequestHandler);
 
-app.get("/users", GetUserHandler);
-
-app.get("/users/:id", GetUserByIdHandler);
+app.get("/users", GetUsersHandler);
 
 app.get("/users/search", SearchUsersHandler);
+
+app.get("/users/:id", GetUserByIdHandler);
 
 app.get("/posts", GetPostsHandler);
 
@@ -109,26 +133,11 @@ app.get("/posts/:id", GetPostByIdHandler);
 
 app.post("/users/create", PostUserHandler);
 
-app.post("/comment", async (req, res) => {
-  const {Description, UserId, PostId} = req.body;
-  const obj = await sequelize.PostComment(Description, UserId, PostId);
-  res.json(obj);
-});
+app.post("/comment", PostCommentHandler);
 
-app.get("/posts/:like", async (req, res)=> {
-  let name = req.params.like;
-  let result = await sequelize.GetPostThatContains(name);
-  res.json(result);
-});
+app.get("/posts/:like", SearchPostByNameHandler);
 
-app.get("/comments/:postid", async (req, res) => {
-  const {postid} = req.params;
-  const obj = await sequelize.GetCommentsByPostId(parseInt(postid));
-  if (!obj){
-    return res.status(404).send("not found");
-  }
-  res.json(obj);
-});
+app.get("/comments/:postid", GetCommentsByPostIdHandler);
 
 app.delete("/users/:id", DeleteUserByIdHandler);
 

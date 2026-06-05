@@ -93,6 +93,11 @@ class OverclockSequelize extends Sequelize {
   async GetUserById(ID: number) {
     let user = await User.findOne({
       where: { id: ID },
+      attributes: ['id',
+        'FirstName',
+        'LastName',
+        'Email'
+      ]
     });
     return user;
   }
@@ -175,13 +180,13 @@ class OverclockSequelize extends Sequelize {
       const whereClause: any = {};
 
       if (filters.FirstName) {
-          whereClause.FirstName = { [Op.like]: `%${filters.FirstName}%` };
+        whereClause.FirstName = { [Op.like]: `%${filters.FirstName}%` };
       }
       if (filters.LastName) {
-          whereClause.LastName = { [Op.like]: `%${filters.LastName}%` };
+        whereClause.LastName = { [Op.like]: `%${filters.LastName}%` };
       }
       if (filters.Email) {
-          whereClause.Email = { [Op.like]: `%${filters.Email}%` };
+        whereClause.Email = { [Op.like]: `%${filters.Email}%` };
       }
 
       let users = await User.findAll({
@@ -317,6 +322,7 @@ class OverclockSequelize extends Sequelize {
       }
     );
     await c.save();
+    return c.toJSON();
   }
 }
 

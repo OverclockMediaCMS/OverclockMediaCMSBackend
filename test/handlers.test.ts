@@ -1,6 +1,7 @@
-import { expect, test } from 'vitest'
+import { beforeEach, expect, test } from 'vitest'
 import express from 'express';
-import { DeleteUserByIdHandler, GetMediaContainsNameHandler, GetMediaHandler, GetPostByIdHandler, GetPostsHandler, GetTagsHandler, GetUserByIdHandler, GetUserHandler, IndexRequestHandler, PostUserHandler, SearchUsersHandler } from '../index';
+import { DeleteUserByIdHandler, GetMediaContainsNameHandler, GetMediaHandler, GetPostByIdHandler, GetPostsHandler, GetTagsHandler, GetUserByIdHandler, GetUsersHandler, IndexRequestHandler, PostCommentHandler, PostUserHandler, SearchUsersHandler } from '../index';
+import { sequelize } from '../db';
 
 class SendPipe {
 
@@ -40,6 +41,10 @@ class SendPipe {
     }
 }
 
+beforeEach(async () => {
+    await sequelize.seedDummyData();
+});
+
 test('Checks if Index handler responds with data',
     () => {
 
@@ -57,7 +62,7 @@ test('Checks if GetUser handler responds with data',
         const pipe = new SendPipe();
         const res = { json: pipe.getJSONCallback() };
 
-        await GetUserHandler({} as express.Request, res as express.Response);
+        await GetUsersHandler({} as express.Request, res as express.Response);
 
         const expected = [
             {
@@ -115,7 +120,7 @@ test('Checks if GetUserById handler responds with 404 when user is not found',
         expect(pipe.data[1]).toEqual("not found");
 })
 
-test('Checks if SearchUser handler correctly filters users by FirstName query',
+test('Checks if SearchUsers handler correctly filters users by FirstName query',
     async () => {
         const pipe = new SendPipe();
         const res = { json: pipe.getJSONCallback() };
@@ -426,3 +431,63 @@ test('Checks if DeleteUser handler deletes data correctly',
         expect(pipe.data[2]).toEqual("not found");
     }
 )
+
+test('Checks if PostComment handler inserts data correctly',
+    async () => {
+        const pipe = new SendPipe();
+        const res = {
+            status: pipe.getStatusCallback(),
+            send: pipe.getCallback(),
+            json: pipe.getJSONCallback()
+        };
+        const req = {
+            body : {
+                Description : "This is description",
+                UserId : 1,
+                PostId : 1
+            }
+        }
+        await PostCommentHandler(req as any, res as any);
+
+        const mockTimestamp : Date = new Date();
+        const mockTimeString : string = mockTimestamp.toISOString();
+
+        const expectedResponse = {
+            "Date" : mockTimeString,
+            "Description" : "This is description",
+            "UserId" : 1,
+            "createdAt": mockTimeString,
+            "PostId" : 1,
+            "updatedAt" : mockTimeString,
+            'id' : 1
+        }
+        pipe.data[0].Date = mockTimeString;
+        pipe.data[0].createdAt = mockTimeString;
+        pipe.data[0].updatedAt = mockTimeString;
+        expect(pipe.data[0]).toEqual(expectedResponse);
+    }
+)
+
+test('Checks if SearchUsers handler responds with filtered data',
+    async () => {
+        const pipe = new SendPipe();
+        const res = {
+            json: pipe.getJSONCallback()
+        };
+        const req = { query : {FirstName : "1" } }
+        
+        await SearchUsersHandler(req as any, res as any);
+
+        const expectedResponse = [
+            {
+                "id": 1,
+                "FirstName": "u1",
+                "LastName": "u1",
+                "Email": "u1@email.com"
+            }
+        ];
+
+        expect(pipe.data[0]).toEqual(expectedResponse);
+    }
+
+);
