@@ -26,8 +26,9 @@ http://localhost:3000/~
 ## POST
 
 /users/create
-/users/:id/posts/create
-/users/:id/media/create
+/posts/create
+/media/create
+/tags/create
 
 ## PUT
 
@@ -70,7 +71,7 @@ curl -X POST http://localhost:3000/users/create \
      -H "Content-Type: application/json" \
      -d '{"FirstName": "John" , "LastName": "Doe", "Email": "jd@mail.com", "PasswordHash" : "pass123"}' | jq
 
-curl -X DELETE http://localhost:3000/users/2
+curl -X DELETE http://localhost:3000/users/3
 
 curl -X
 
