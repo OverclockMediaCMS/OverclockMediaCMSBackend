@@ -1,4 +1,6 @@
 import {Sequelize, DataTypes, } from 'sequelize';
+import crypto from 'node:crypto'
+import jwt from 'jsonwebtoken'
 
 /* need to create new user in mssql, you can do this in the GUI in SSMS or using this query, check policy just stop it from enforcing password rules
 
@@ -149,7 +151,6 @@ class OverclockSequelize extends Sequelize {
             
         });
     }
-    // POST Media function
     
     async DeleteUserById(ID : number){
         let user = await User.findOne({
@@ -164,7 +165,55 @@ class OverclockSequelize extends Sequelize {
         return user;
     }
     
+        
+    async LoginUser(email: string, password: string){
+        //find user 
+        const u = await User.findOne({
+            where : {Email: email}
+        })as any;
+        //if user doesnt exist
+        if(u == null){
+            //return something saying user exists
+            return;
+        }
+        //hash password with the same salt
+        const hashPass = crypto.scryptSync(password, u.Salt,  32).toString('hex');
+
+        if(hashPass === u.hashedpassword){
+            //logged in
+        }else{
+            //not logged in
+            return;
+        }
+    }
+    
+    async RegisterUser(email: string, fname: string, lname: string, password: string){
+        //check if user exists
+        const u = await User.findOne({
+            where : {Email: email}
+        });
+        if(u != null){
+            //return something saying user exists
+            return;
+        }
+        //create password salt
+        const uSalt = crypto.randomBytes(16).toString('hex');
+        //create hashedpassword
+        const hashPass = crypto.scryptSync(password, uSalt, 32).toString('hex');
+        
+        const newUser = User.build(
+            {
+                FirstName: fname,
+                LastName: lname,
+                Email: email,
+                PasswordHash: hashPass,
+                Salt: uSalt
+            }
+        );
+        newUser.save();
+    }
 }
+
 export const sequelize = new OverclockSequelize("OverclockMediaCMS", "tim", "123", {
     host: "localhost",
     dialect : "mssql",
@@ -191,6 +240,9 @@ const User = sequelize.define(
                 LastName : {
                     type: DataTypes.STRING,
                 },
+                Salt : {
+                    type: DataTypes.STRING,
+                }
             },
             {
               timestamps : false  
