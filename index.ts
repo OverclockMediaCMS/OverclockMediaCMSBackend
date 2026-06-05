@@ -109,7 +109,7 @@ export const RegisterUserHandler = async (req: express.Request, res: express.Res
   if (!isSuccess){
     return res.status(409).send("This email address is already registered.");
   }
-  res.send("Register user successful");
+  res.status(200).send("Register user successful");
 }
 
 export const LoginUserHandler = async (req: express.Request, res: express.Response) => {
@@ -118,7 +118,7 @@ export const LoginUserHandler = async (req: express.Request, res: express.Respon
   if (!isSuccess){
     return res.status(401).send("Invaild Email or Password");
   } else {
-    return res.send("Login successful");
+    return res.status(200).send("Login successful");
   }
 }
 
