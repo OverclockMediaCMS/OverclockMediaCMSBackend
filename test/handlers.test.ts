@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from 'vitest'
 import express from 'express';
-import { DeleteUserByIdHandler, GetMediaContainsNameHandler, GetMediaHandler, GetPostByIdHandler, GetPostsHandler, GetTagsHandler, GetUserByIdHandler, GetUsersHandler, IndexRequestHandler, PostCommentHandler, PostUserHandler, SearchUsersHandler } from '../index';
+import { DeleteUserByIdHandler, GetMediaContainsNameHandler, GetMediaHandler, GetPostByIdHandler, GetPostsHandler, GetTagsHandler, GetUserByIdHandler, GetUsersHandler, IndexRequestHandler, LoginUserHandler, PostCommentHandler, PostUserHandler, RegisterUserHandler, SearchUsersHandler } from '../index';
 import { sequelize } from '../db';
 
 class SendPipe {
@@ -109,7 +109,8 @@ test('Checks if GetUserById handler responds with 404 when user is not found',
         
         const res = {
             status: pipe.getStatusCallback(),
-            send: pipe.getCallback()
+            send: pipe.getCallback(),
+            json: pipe.getJSONCallback()
         };
 
         const req = { params: { id: '99' } };
@@ -485,5 +486,71 @@ test('Checks if SearchUsers handler responds with filtered data',
 
         expect(pipe.data[0]).toEqual(expectedResponse);
     }
-
 );
+
+test('Check if RegisterUser handler inserts user data properly',
+    async () => {
+        const pipe = new SendPipe();
+        const res = {
+            status: pipe.getStatusCallback(),
+            send: pipe.getCallback(),
+            json: pipe.getJSONCallback()
+        };
+        const req = {
+            body : {
+                FirstName : "Tim",
+                LastName : "Chalamet",
+                Email : "tim@email.com",
+                Password : "1234",
+            }
+        };
+        await RegisterUserHandler(req as any, res as any);
+        await GetUserByIdHandler({params : {id : 3}} as any, res as any);
+        const expectedResponse = "Register user successful";
+        const expectedGetUser = {
+            FirstName : "Tim",
+            LastName : "Chalamet",
+            Email : "tim@email.com",
+            id : 3
+        }
+        expect(pipe.data[0]).toEqual("Status: 200");
+        expect(pipe.data[1]).toEqual(expectedResponse);
+        expect(pipe.data[2]).toEqual(expectedGetUser);
+    }
+);
+
+test('Check if LoginUser handler succesfully logins with correct user details', 
+    async () => {
+        const pipe = new SendPipe();
+        const res = {
+            status: pipe.getStatusCallback(),
+            send: pipe.getCallback(),
+            json: pipe.getJSONCallback()
+        };
+        const req1 = {
+            body : {
+                FirstName : "Tim",
+                LastName : "Chalamet",
+                Email : "tim@email.com",
+                Password : "1234"
+            }
+        }
+        const req2 = {
+            body : {
+                Email : "tim@email.com",
+                Password : "1234"
+            }
+        }
+
+        const expectedResponse = {
+            FirstName : "Tim",
+            LastName : "Chalamet",
+            Email : "tim@email.com",
+            id : 3
+        }
+
+        await RegisterUserHandler(req1 as any, res as any);
+        await LoginUserHandler(req2 as any, res as any);
+        expect(pipe.data[2]).toEqual(expectedResponse);
+    }
+)
