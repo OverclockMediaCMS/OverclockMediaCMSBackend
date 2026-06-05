@@ -386,12 +386,8 @@ test('Checks if PostUser handler inserts new user correctly',
 
         const expectedGetUser = {
             "FirstName" : "Tim",
-            "InternalPhone" : "0422111222",
             "LastName" : "Chalamet",
-            "MobilePhone" : "0400111222",
-            "Role" : "TBD",
             "Email" : "tim@email.com",
-            "PasswordHash" : "1234",
             "id" : 3
         }
         const expectedResponse = {

@@ -318,16 +318,17 @@ class OverclockSequelize extends Sequelize {
         //if user doesnt exist
         if(u == null){
             //return something saying user exists
-            return;
+            return false;
         }
         //hash password with the same salt
         const hashPass = crypto.scryptSync(password, u.Salt,  32).toString('hex');
 
         if(hashPass === u.hashedpassword){
             //logged in
+            return true;
         }else{
             //not logged in
-            return;
+            return false;
         }
   }
 
@@ -338,7 +339,7 @@ class OverclockSequelize extends Sequelize {
         });
         if(u != null){
             //return something saying user exists
-            return;
+            return false;
         }
         //create password salt
         const uSalt = crypto.randomBytes(16).toString('hex');
@@ -355,6 +356,7 @@ class OverclockSequelize extends Sequelize {
             }
         );
         newUser.save();
+        return true;
     }
 
   async PostComment(description: string, userid: number, postid: number ){

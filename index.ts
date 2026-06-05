@@ -103,6 +103,25 @@ export const GetCommentsByPostIdHandler = async (req: express.Request, res: expr
   res.json(obj);
 };
 
+export const RegisterUserHandler = async (req: express.Request, res: express.Response) => {
+  const {Email, FirstName, LastName, Password} = req.body;
+  const isSuccess = await sequelize.RegisterUser(Email, FirstName, LastName, Password);
+  if (!isSuccess){
+    return res.status(409).send("This email address is already registered.");
+  }
+  res.send("Register user successful");
+}
+
+export const LoginUserHandler = async (req: express.Request, res: express.Response) => {
+  const {Email, Password} = req.body;
+  const isSuccess = await sequelize.LoginUser(Email, Password);
+  if (!isSuccess){
+    return res.status(401).send("Invaild Email or Password");
+  } else {
+    return res.send("Login successful");
+  }
+}
+
 export const DeleteUserByIdHandler = async (req: express.Request, res: express.Response) => {
   const {id} = req.params;
   const obj = await sequelize.DeleteUserById(parseInt(id as string));
@@ -111,7 +130,6 @@ export const DeleteUserByIdHandler = async (req: express.Request, res: express.R
   }
   res.json(obj);
 };
-
 
 app.get("/", IndexRequestHandler);
 
@@ -134,6 +152,9 @@ app.get("/posts/:id", GetPostByIdHandler);
 app.post("/users/create", PostUserHandler);
 
 app.post("/comment", PostCommentHandler);
+
+app.post("/users/register", RegisterUserHandler);
+app.post("/users/login", LoginUserHandler);
 
 app.get("/posts/:like", SearchPostByNameHandler);
 
