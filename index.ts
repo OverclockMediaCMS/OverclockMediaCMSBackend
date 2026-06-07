@@ -1,5 +1,5 @@
 import express from 'express';
-import {sequelize} from './db.ts'
+import { sequelize } from './db.ts'
 import cors from 'cors';
 import helmet from 'helmet';
 
@@ -20,16 +20,21 @@ export const IndexRequestHandler = (req: express.Request, res: express.Response)
   console.log("Response sent");
 }
 
-export const GetUsersHandler = async (req: express.Request, res: express.Response)=> {
+export const GetUsersHandler = async (req: express.Request, res: express.Response) => {
   const result = await sequelize.GetAllUsers();
   res.json(result);
 }
 
 export const GetUserByIdHandler = async (req: express.Request, res: express.Response) => {
-  const {id} = req.params;
+  const { id } = req.params;
   const obj = await sequelize.GetUserById(parseInt(id as string));
+<<<<<<< HEAD
   if (!obj){
     res.status(404).send("not found");
+=======
+  if (!obj) {
+    return res.status(404).send("not found");
+>>>>>>> Sirawit
   }
   res.json(obj);
 }
@@ -68,10 +73,15 @@ export const GetTagsHandler = async (req: express.Request, res: express.Response
 };
 
 export const GetPostByIdHandler = async (req: express.Request, res: express.Response) => {
-  const {id} = req.params;
+  const { id } = req.params;
   const obj = await sequelize.GetPostById(parseInt(id as string));
+<<<<<<< HEAD
   if (!obj){
     res.status(404).send("not found");
+=======
+  if (!obj) {
+    return res.status(404).send("not found");
+>>>>>>> Sirawit
   }
   res.json(obj);
 };
@@ -83,7 +93,7 @@ export const PostUserHandler = async (req: express.Request, res: express.Respons
 };
 
 export const PostCommentHandler = async (req: express.Request, res: express.Response) => {
-  const {Description, UserId, PostId} = req.body;
+  const { Description, UserId, PostId } = req.body;
   const obj = await sequelize.PostComment(Description, UserId, PostId);
   res.json(obj);
 }
@@ -95,40 +105,82 @@ export const SearchPostByNameHandler = async (req: express.Request, res: express
 };
 
 export const GetCommentsByPostIdHandler = async (req: express.Request, res: express.Response) => {
-  const {postid} = req.params;
+  const { postid } = req.params;
   const obj = await sequelize.GetCommentsByPostId(parseInt(postid as string));
+<<<<<<< HEAD
   if (!obj){
     res.status(404).send("not found");
+=======
+  if (!obj) {
+    return res.status(404).send("not found");
+>>>>>>> Sirawit
   }
   res.json(obj);
 };
 
 export const RegisterUserHandler = async (req: express.Request, res: express.Response) => {
-  const {Email, FirstName, LastName, Password} = req.body;
+  const { Email, FirstName, LastName, Password } = req.body;
   const isSuccess = await sequelize.RegisterUser(Email, FirstName, LastName, Password);
+<<<<<<< HEAD
   if (!isSuccess){
     res.status(409).send("This email address is already registered.");
+=======
+  if (!isSuccess) {
+    return res.status(409).send("This email address is already registered.");
+>>>>>>> Sirawit
   }
   res.status(200).send("Register user successful");
 }
 
 export const LoginUserHandler = async (req: express.Request, res: express.Response) => {
-  const {Email, Password} = req.body;
+  const { Email, Password } = req.body;
   const isSuccess = await sequelize.LoginUser(Email, Password);
+<<<<<<< HEAD
   if (!isSuccess){
     res.status(401).send("Invaild Email or Password");
+=======
+  if (!isSuccess) {
+    return res.status(401).send("Invaild Email or Password");
+>>>>>>> Sirawit
   } else {
     res.status(200).send("Login successful");
   }
 }
 
 export const DeleteUserByIdHandler = async (req: express.Request, res: express.Response) => {
-  const {id} = req.params;
+  const { id } = req.params;
   const obj = await sequelize.DeleteUserById(parseInt(id as string));
+<<<<<<< HEAD
   if (!obj){
     return res.status(404).send("Not found");
+=======
+  if (!obj) {
+    return res.status(404).send("not found");
+>>>>>>> Sirawit
   }
   res.json(obj);
+};
+
+export const UpdateUserByIdHandler = async (req: express.Request, res: express.Response) => {
+  const { id } = req.params;
+  const { FirstName, LastName, Email, Role, MobilePhone, InternalPhone } = req.body;
+  try {
+    const obj = await sequelize.UpdateUserById(parseInt(id as string), {
+      FirstName,
+      LastName,
+      Email,
+      Role,
+      MobilePhone,
+      InternalPhone
+    });
+    if (!obj) {
+      return res.status(404).send("User profile not found");
+    }
+    res.json(obj);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  } 
 };
 
 app.get("/", IndexRequestHandler);
@@ -161,6 +213,8 @@ app.get("/posts/:like", SearchPostByNameHandler);
 app.get("/comments/:postid", GetCommentsByPostIdHandler);
 
 app.delete("/users/:id", DeleteUserByIdHandler);
+
+app.put("/users/:id", UpdateUserByIdHandler);
 
 app.listen(PORT, () => {
   console.log(`app listening on port ${PORT}`);
