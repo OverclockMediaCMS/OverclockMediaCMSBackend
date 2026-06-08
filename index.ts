@@ -23,16 +23,37 @@ export const IndexRequestHandler = (req: express.Request, res: express.Response)
 
 export const GetUsersHandler = async (req: express.Request, res: express.Response) => {
   const result = await sequelize.GetAllUsers();
-  res.json(result);
+  if (!result) {
+    const response = {
+      status : 404,
+      response : "Error - Users Not Found"
+    }
+    res.status(404).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.status(200).json(response);
+  }
 }
 
 export const GetUserByIdHandler = async (req: express.Request, res: express.Response) => {
   const { id } = req.params;
-  const obj = await sequelize.GetUserById(parseInt(id as string));
-  if (!obj){
-    res.status(404).send("not found");
+  const result = await sequelize.GetUserById(parseInt(id as string));
+  if (!result) {
+    const response = {
+      status : 404,
+      response : "Error - User Not Found"
+    }
+    res.status(404).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.status(200).json(response);
   }
-  res.json(obj);
 }
 
 export const SearchUsersHandler = async (req: express.Request, res: express.Response) => {
@@ -49,12 +70,36 @@ export const SearchUsersHandler = async (req: express.Request, res: express.Resp
 
 export const GetPostsHandler = async (req: express.Request, res: express.Response) => {
   let result = await sequelize.GetAllPosts();
-  res.json(result);
+  if (!result) {
+    const response = {
+      status : 404,
+      response : "Error - Posts Not Found"
+    }
+    res.status(404).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.status(200).json(response);
+  }
 };
 
 export const GetMediaHandler = async (req: express.Request, res: express.Response) => {
   let result = await sequelize.GetAllMedia();
-  res.json(result);
+  if (!result) {
+    const response = {
+      status : 404,
+      response : "Error - Media Not Found"
+    }
+    res.status(404).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.status(200).json(response);
+  }
 };
 
 export const GetMediaContainsNameHandler = async (req: express.Request, res: express.Response) => {
@@ -65,28 +110,73 @@ export const GetMediaContainsNameHandler = async (req: express.Request, res: exp
 
 export const GetTagsHandler = async (req: express.Request, res: express.Response) => {
   let result = await sequelize.GetAllTags();
-  res.json(result);
+  if (!result) {
+    const response = {
+      status : 404,
+      response : "Error - Tags Not Found"
+    }
+    res.status(404).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.status(200).json(response);
+  }
 };
 
 export const GetPostByIdHandler = async (req: express.Request, res: express.Response) => {
   const { id } = req.params;
-  const obj = await sequelize.GetPostById(parseInt(id as string));
-  if (!obj){
-    res.status(404).send("not found");
+  const result = await sequelize.GetPostById(parseInt(id as string));
+  if (!result) {
+    const response = {
+      status : 404,
+      response : "Error - Post Not Found"
+    }
+    res.status(404).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.status(200).json(response);
   }
-  res.json(obj);
 };
 
 export const PostUserHandler = async (req: express.Request, res: express.Response) => {
   const { FirstName, LastName, Email, PasswordHash, InternalPhone, MobilePhone, Role } = req.body;
-  const obj = await sequelize.PostUser(FirstName, LastName, Email, PasswordHash, InternalPhone, MobilePhone, Role);
-  res.json(obj);
+  const result = await sequelize.PostUser(FirstName, LastName, Email, PasswordHash, InternalPhone, MobilePhone, Role);
+  if (!result) {
+    const response = {
+      status : 500,
+      response : "Internal Error - Cannot Create User"
+    }
+    res.status(500).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.status(200).json(response);
+  }
 };
 
 export const PostCommentHandler = async (req: express.Request, res: express.Response) => {
   const { Description, UserId, PostId } = req.body;
-  const obj = await sequelize.PostComment(Description, UserId, PostId);
-  res.json(obj);
+  const result = await sequelize.PostComment(Description, UserId, PostId);
+  if (!result) {
+    const response = {
+      status : 500,
+      response : "Internal Error - Cannot Create Post"
+    }
+    res.status(500).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.status(200).json(response);
+  }
 }
 
 export const SearchPostByNameHandler = async (req: express.Request, res: express.Response) => {
@@ -97,20 +187,38 @@ export const SearchPostByNameHandler = async (req: express.Request, res: express
 
 export const GetCommentsByPostIdHandler = async (req: express.Request, res: express.Response) => {
   const { postid } = req.params;
-  const obj = await sequelize.GetCommentsByPostId(parseInt(postid as string));
-  if (!obj){
-    res.status(404).send("not found");
+  const result = await sequelize.GetCommentsByPostId(parseInt(postid as string));
+  if (!result) {
+    const response = {
+      status : 404,
+      response : "Error - Cannot Get Comments"
+    }
+    res.status(404).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.status(200).json(response);
   }
-  res.json(obj);
 };
 
 export const RegisterUserHandler = async (req: express.Request, res: express.Response) => {
   const { Email, FirstName, LastName, Password } = req.body;
-  const isSuccess = await sequelize.RegisterUser(Email, FirstName, LastName, Password);
-  if (!isSuccess){
-    res.status(409).send("This email address is already registered.");
+  const result = await sequelize.RegisterUser(Email, FirstName, LastName, Password);
+  if (!result) {
+    const response = {
+      status : 500,
+      response : "Internal Error - Cannot Create User or User already exists"
+    }
+    res.status(500).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.status(200).json(response);
   }
-  res.status(200).send("Register user successful");
 }
 
 export const LoginUserHandler = async (req: express.Request, res: express.Response) => {
@@ -125,18 +233,27 @@ export const LoginUserHandler = async (req: express.Request, res: express.Respon
 
 export const DeleteUserByIdHandler = async (req: express.Request, res: express.Response) => {
   const { id } = req.params;
-  const obj = await sequelize.DeleteUserById(parseInt(id as string));
-  if (!obj){
-    return res.status(404).send("Not found");
+  const result = await sequelize.DeleteUserById(parseInt(id as string));
+  if (!result) {
+    const response = {
+      status : 500,
+      response : "Internal Error - Cannot Delete User"
+    }
+    res.status(500).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.status(200).json(response);
   }
-  res.json(obj);
 };
 
 export const UpdateUserByIdHandler = async (req: express.Request, res: express.Response) => {
   const { id } = req.params;
   const { FirstName, LastName, Email, Role, MobilePhone, InternalPhone } = req.body;
   try {
-    const obj = await sequelize.UpdateUserById(parseInt(id as string), {
+    const result = await sequelize.UpdateUserById(parseInt(id as string), {
       FirstName,
       LastName,
       Email,
@@ -144,13 +261,26 @@ export const UpdateUserByIdHandler = async (req: express.Request, res: express.R
       MobilePhone,
       InternalPhone
     });
-    if (!obj) {
-      return res.status(404).send("User profile not found");
+    if (!result) {
+    const response = {
+      status : 404,
+      response : "Error - User Not Found"
     }
-    res.json(obj);
+    res.status(404).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.status(200).json(response);
+  }
   } catch (error) {
     console.error(error);
-    res.status(500).send("Server Error");
+    const response = {
+      status : 500,
+      response : "Server Error"
+    }
+    res.status(500).json(response);
   } 
 };
 
@@ -168,7 +298,7 @@ export const CreatePostHandler = async (req: express.Request, res: express.Respo
       status : 200,
       response : result
     }
-    res.send(200).json(response);
+    res.status(200).json(response);
   }
 }
 
@@ -186,7 +316,7 @@ export const DeletePostHandler = async (req: express.Request, res: express.Respo
       status : 200,
       response : result
     }
-    res.send(200).json(response);
+    res.status(200).json(response);
   }
 }
 
@@ -204,7 +334,7 @@ export const PostMediaHandler = async (req: express.Request, res: express.Respon
       status : 200,
       response : result
     }
-    res.send(200).json(response);
+    res.status(200).json(response);
   }
 }
 
@@ -222,7 +352,7 @@ export const DeleteMediaHandler = async (req: express.Request, res: express.Resp
       status : 200,
       response : result
     }
-    res.send(200).json(response);
+    res.status(200).json(response);
   }
 }
 
@@ -240,7 +370,7 @@ export const PostTagHandler = async (req: express.Request, res: express.Response
       status : 200,
       response : result
     }
-    res.send(200).json(response);
+    res.status(200).json(response);
   }
 }
 
@@ -258,7 +388,7 @@ export const DeleteTagHandler = async (req: express.Request, res: express.Respon
       status : 200,
       response : result
     }
-    res.send(200).json(response);
+    res.status(200).json(response);
   }
 }
 
@@ -276,7 +406,7 @@ export const DeleteCommentHandler = async (req: express.Request, res: express.Re
       status : 200,
       response : result
     }
-    res.send(200).json(response);
+    res.status(200).json(response);
   }
 }
 
@@ -294,7 +424,7 @@ export const PostMediaPostHandler = async (req: express.Request, res: express.Re
       status : 200,
       response : result
     }
-    res.send(200).json(response);
+    res.status(200).json(response);
   }
 }
 
