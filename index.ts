@@ -1,7 +1,8 @@
-import express from 'express';
+import express, { response } from 'express';
 import { sequelize } from './db.ts'
 import cors from 'cors';
 import helmet from 'helmet';
+import { parse } from 'node:path';
 
 //instructions for setting up connection in db.ts
 await sequelize.tryConnect();
@@ -154,7 +155,147 @@ export const UpdateUserByIdHandler = async (req: express.Request, res: express.R
 };
 
 export const CreatePostHandler = async (req: express.Request, res: express.Response) => {
-  const { Title, Body, isDraft, } = req.body;
+  const { Title, Body, isDraft, UserId} = req.body;
+  const result = await sequelize.PostPost(Title, Body, isDraft, UserId);
+  if (!result) {
+    const response = {
+      status : 500,
+      response : "Cannot Create Post - Internal Error"
+    }
+    res.status(500).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.send(200).json(response);
+  }
+}
+
+export const DeletePostHandler = async (req: express.Request, res: express.Response) => {
+  const {id} = req.params;
+  const result = await sequelize.DeletePostById(parseInt(id as string));
+  if (!result) {
+    const response = {
+      status : 500,
+      response : "Cannot Delete Post - Internal Error"
+    }
+    res.status(500).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.send(200).json(response);
+  }
+}
+
+export const PostMediaHandler = async (req: express.Request, res: express.Response) => {
+  const {Title, FilePath, FileExtension} = req.body;
+  const result = await sequelize.PostMedia(Title, FilePath, FileExtension);
+  if (!result) {
+    const response = {
+      status : 500,
+      response : "Cannot Create Media - Internal Error"
+    }
+    res.status(500).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.send(200).json(response);
+  }
+}
+
+export const DeleteMediaHandler = async (req: express.Request, res: express.Response) => {
+  const {id} = req.params;
+  const result = await sequelize.DeleteMediaById(parseInt(id as string));
+  if (!result) {
+    const response = {
+      status : 500,
+      response : "Cannot Delete Media - Internal Error"
+    }
+    res.status(500).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.send(200).json(response);
+  }
+}
+
+export const PostTagHandler = async (req: express.Request, res: express.Response) => {
+  const {Title} = req.body;
+  const result = await sequelize.PostTag(Title);
+  if (!result) {
+    const response = {
+      status : 500,
+      response : "Cannot Create Tag - Internal Error"
+    }
+    res.status(500).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.send(200).json(response);
+  }
+}
+
+export const DeleteTagHandler = async (req: express.Request, res: express.Response) => {
+  const {id} = req.params;
+  const result = await sequelize.DeleteTagById(parseInt(id as string));
+  if (!result) {
+    const response = {
+      status : 500,
+      response : "Cannot Delete Tag - Internal Error"
+    }
+    res.status(500).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.send(200).json(response);
+  }
+}
+
+export const DeleteCommentHandler = async (req: express.Request, res: express.Response) => {
+  const {id} = req.params;
+  const result = await sequelize.DeleteCommentById(parseInt(id as string));
+  if (!result) {
+    const response = {
+      status : 500,
+      response : "Cannot Delete Comment - Internal Error"
+    }
+    res.status(500).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.send(200).json(response);
+  }
+}
+
+export const PostMediaPostHandler = async (req: express.Request, res: express.Response) => {
+  const {MediaId , PostId} = req.body;
+  const result = await sequelize.PostMediaPost(MediaId, PostId);
+  if (!result) {
+    const response = {
+      status : 500,
+      response : "Cannot Create MediaPost - Internal Error"
+    }
+    res.status(500).json(response);
+  } else {
+    const response = {
+      status : 200,
+      response : result
+    }
+    res.send(200).json(response);
+  }
 }
 
 app.get("/", IndexRequestHandler);
@@ -183,40 +324,40 @@ app.get("/posts/:id", GetPostByIdHandler);
 
 app.get("/posts/:like", SearchPostByNameHandler);
 
-app.post("/posts/create", CreatePostHandler); // TBD PostPost
+app.post("/posts/create", CreatePostHandler);
 
-app.delete("/posts/:id", ); // TBD DeletePost
+app.delete("/posts/:id", DeletePostHandler);
 
 // Media Endpoints
 app.get("/media", GetMediaHandler);
 
 app.get("/media/:like", GetMediaContainsNameHandler);
 
-app.post("/media/create", ); // TBD PostMedia
+app.post("/media/create", PostMediaHandler);
 
-app.delete("/media/:id", ); // TBD DeleteMedia
+app.delete("/media/:id", DeleteMediaHandler);
 
 // Tag Endpoints
 app.get("/tags", GetTagsHandler);
 
-app.post("/tags/create", ); // TBD PostTag
+app.post("/tags/create", PostTagHandler);
 
-app.delete("/tags/:id", ); // TBD DeleteTag
+app.delete("/tags/:id", DeleteTagHandler);
 
 // Comment Endpoints
 app.post("/comment", PostCommentHandler);
 
 app.get("/comments/:postid", GetCommentsByPostIdHandler);
 
-app.delete("/comments/:id", ); // TBD DeleteComment
+app.delete("/comments/:id", DeleteCommentHandler);
 
 // TagPost Endpoints - TBD
 
-app.post("/tag-post/create", ); // TBD PostTagPost
+// app.post("/tag-post/create", ); // TBD PostTagPost
 
 // MediaPost Endpoints - TBD
 
-app.post("/media-post/create", ); // TBD PostMediaPost
+app.post("/media-post/create", PostMediaPostHandler);
 
 app.listen(PORT, () => {
   console.log(`app listening on port ${PORT}`);

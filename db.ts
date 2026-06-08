@@ -300,7 +300,7 @@ class OverclockSequelize extends Sequelize {
       if (!user) return null;
   
       await user.destroy();
-      return user;
+      return user.toJSON();
   }
 
   async UpdateUserById(ID: number, updateData: { FirstName: string; LastName: string; Email: string; Role: string; MobilePhone: string; InternalPhone: string }) {
@@ -384,6 +384,51 @@ class OverclockSequelize extends Sequelize {
     return c.toJSON();
   }
 
+  async DeleteMediaById(ID : number){
+    const m = await Media.findOne(
+      {
+        where : {id : ID}
+      }
+    );
+    if (!m) return null;
+  
+    await m.destroy();
+    return m.toJSON();
+  }
+
+  async DeleteTagById(ID : number) {
+    const t = await Tag.findOne(
+      {
+        where : {id : ID}
+      }
+    );
+    if (!t) return null;
+    await t.destroy();
+    return t.toJSON();
+  }
+
+  async DeleteCommentById(ID : number) {
+    const c = await Comment.findOne(
+      {
+        where : {id : ID}
+      }
+    );
+    if (!c) return null;
+    await c.destroy();
+    return c.toJSON();
+  }
+
+  async PostMediaPost(mediaId : number, postId : number){
+    const mp = MediaPost.build(
+      {
+        MediaId : mediaId,
+        PostId : postId
+      }
+    );
+    await mp.save();
+    return mp.toJSON();
+  }
+
   constructor(config: OverclockSequelizeConfig) {
     super(config.database, config.username, config.password, config.config);
   }
@@ -439,7 +484,7 @@ You can also just manually create the DB in SSMS and make the owner your user! o
 export const sequelize = new OverclockSequelize(
   {
     database: "OverclockMediaCMS", username: "tim", password: "123", 
-    config: TestConfig
+    config: ProductionConfig
   });
 
 const User = sequelize.define(

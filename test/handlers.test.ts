@@ -554,3 +554,19 @@ test('Check if LoginUser handler succesfully logins with correct user details',
         expect(pipe.data[2]).toEqual(expectedResponse);
     }
 )
+
+test.todo('Checks if PostPost inserts into Post correctly')
+
+test.todo('Checks if DeletePost handler delete posts properly with id param')
+
+test.todo('Checks if PostMedia handler creates media properly')
+
+test.todo('Checks if DeleteMedia handler is deleting data correctly')
+
+test.todo('Checks if PostTag handler inserts data correctly')
+
+test.todo('Checks if DeleteTag handler delete data correctly')
+
+test.todo('Checks if DeleteComment handler delete data correctly')
+
+test.todo('Checks if PostMediaPost handler is inserting data correctly')
