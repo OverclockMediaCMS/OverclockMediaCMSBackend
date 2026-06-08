@@ -153,38 +153,70 @@ export const UpdateUserByIdHandler = async (req: express.Request, res: express.R
   } 
 };
 
+export const CreatePostHandler = async (req: express.Request, res: express.Response) => {
+  const { Title, Body, isDraft, } = req.body;
+}
+
 app.get("/", IndexRequestHandler);
 
+// User Endpoints
 app.get("/users", GetUsersHandler);
 
 app.get("/users/search", SearchUsersHandler);
 
 app.get("/users/:id", GetUserByIdHandler);
 
+app.put("/users/:id", UpdateUserByIdHandler);
+
+app.post("/users/create", PostUserHandler);
+
+app.post("/users/register", RegisterUserHandler);
+
+app.post("/users/login", LoginUserHandler);
+
+app.delete("/users/:id", DeleteUserByIdHandler);
+
+// Post Endpoints
 app.get("/posts", GetPostsHandler);
 
+app.get("/posts/:id", GetPostByIdHandler);
+
+app.get("/posts/:like", SearchPostByNameHandler);
+
+app.post("/posts/create", CreatePostHandler); // TBD PostPost
+
+app.delete("/posts/:id", ); // TBD DeletePost
+
+// Media Endpoints
 app.get("/media", GetMediaHandler);
 
 app.get("/media/:like", GetMediaContainsNameHandler);
 
+app.post("/media/create", ); // TBD PostMedia
+
+app.delete("/media/:id", ); // TBD DeleteMedia
+
+// Tag Endpoints
 app.get("/tags", GetTagsHandler);
 
-app.get("/posts/:id", GetPostByIdHandler);
+app.post("/tags/create", ); // TBD PostTag
 
-app.post("/users/create", PostUserHandler);
+app.delete("/tags/:id", ); // TBD DeleteTag
 
+// Comment Endpoints
 app.post("/comment", PostCommentHandler);
-
-app.post("/users/register", RegisterUserHandler);
-app.post("/users/login", LoginUserHandler);
-
-app.get("/posts/:like", SearchPostByNameHandler);
 
 app.get("/comments/:postid", GetCommentsByPostIdHandler);
 
-app.delete("/users/:id", DeleteUserByIdHandler);
+app.delete("/comments/:id", ); // TBD DeleteComment
 
-app.put("/users/:id", UpdateUserByIdHandler);
+// TagPost Endpoints - TBD
+
+app.post("/tag-post/create", ); // TBD PostTagPost
+
+// MediaPost Endpoints - TBD
+
+app.post("/media-post/create", ); // TBD PostMediaPost
 
 app.listen(PORT, () => {
   console.log(`app listening on port ${PORT}`);

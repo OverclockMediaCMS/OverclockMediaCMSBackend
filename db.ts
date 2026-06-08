@@ -263,12 +263,12 @@ class OverclockSequelize extends Sequelize {
     });
     return u.toJSON();
   }
-  async PostPost(title : string, body : string, is_draft : boolean, date : string){
+  async PostPost(title : string, body : string, is_draft : boolean, userId : number){
     const p = await Post.create({
         Title : title,
         Body : body,
         isDraft : is_draft,
-        Date : date
+        UserId : userId
     });
     return p.toJSON();
   }
