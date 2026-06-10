@@ -17,7 +17,8 @@ class OverclockSequelize extends Sequelize {
   }
   //calling this will seed the DB with some dummy data
   async seedDummyData() {
-    await this.sync({ force: true });
+    await this.sync({force:true})
+    //await this.sync();
     const u1 = User.build(
       {
         FirstName: 'u1',
@@ -51,7 +52,7 @@ class OverclockSequelize extends Sequelize {
     const p1 = Post.build(
       {
         Title: "This is a post",
-        Body: "This is the body",
+        Body: "# heading 1\n## heading 2\n### heading 3\n*italic*",
         isDraft: false,
         Date: new Date(),
         UserId: u1.dataValues.id
@@ -135,7 +136,7 @@ class OverclockSequelize extends Sequelize {
     });
     return post;
   }
-  async GetAllPosts() {
+  async GetMostRecentPosts() {
     let posts = await Post.findAll({
       order : [['Date', 'DESC']],
       limit: 5,
@@ -164,7 +165,7 @@ class OverclockSequelize extends Sequelize {
     });
     return media;
   }
-  async GetAllMedia() {
+  async GetMostRecentMedia() {
     let media = await Media.findAll({
       include: {
         model: User,
@@ -263,12 +264,12 @@ class OverclockSequelize extends Sequelize {
     });
     return u.toJSON();
   }
-  async PostPost(title : string, body : string, is_draft : boolean, userId : number){
+  async PostPost(title : string, body : string, is_draft : boolean, date : string){
     const p = await Post.create({
         Title : title,
         Body : body,
         isDraft : is_draft,
-        UserId : userId
+        Date : date
     });
     return p.toJSON();
   }
@@ -300,20 +301,8 @@ class OverclockSequelize extends Sequelize {
       if (!user) return null;
   
       await user.destroy();
-      return user.toJSON();
+      return user;
   }
-
-  async UpdateUserById(ID: number, updateData: { FirstName: string; LastName: string; Email: string; Role: string; MobilePhone: string; InternalPhone: string }) {
-  // Find User in db by ID
-  const user = await User.findOne({ where: { id: ID } });
-  // If found then update
-  if (user) {
-    await user.update(updateData);
-    return user.toJSON(); 
-  }
-  // If not found return null
-  return null;
-}
   
   async DeletePostById(ID : number){
       let post = await Post.findOne({
@@ -329,18 +318,19 @@ class OverclockSequelize extends Sequelize {
         })as any;
         //if user doesnt exist
         if(u == null){
-            //return null if user exists
-            return false;
+            //return something saying user exists
+            return undefined;
         }
         //hash password with the same salt
         const hashPass = crypto.scryptSync(password, u.Salt,  32).toString('hex');
 
-        if(hashPass === u.hashedpassword){
+        if(hashPass === u.PasswordHash){
             //logged in
-            return true;
+            const result = await this.GetUserById(u.id);
+            return result;
         }else{
             //not logged in
-            return false;
+            return undefined;
         }
   }
 
@@ -350,8 +340,8 @@ class OverclockSequelize extends Sequelize {
             where : {Email: email}
         });
         if(u != null){
-            //return null if user exists
-            return null;
+            //return something saying user exists
+            return false;
         }
         //create password salt
         const uSalt = crypto.randomBytes(16).toString('hex');
@@ -368,7 +358,7 @@ class OverclockSequelize extends Sequelize {
             }
         );
         newUser.save();
-        return newUser;
+        return true;
     }
 
   async PostComment(description: string, userid: number, postid: number ){
@@ -382,51 +372,6 @@ class OverclockSequelize extends Sequelize {
     );
     await c.save();
     return c.toJSON();
-  }
-
-  async DeleteMediaById(ID : number){
-    const m = await Media.findOne(
-      {
-        where : {id : ID}
-      }
-    );
-    if (!m) return null;
-  
-    await m.destroy();
-    return m.toJSON();
-  }
-
-  async DeleteTagById(ID : number) {
-    const t = await Tag.findOne(
-      {
-        where : {id : ID}
-      }
-    );
-    if (!t) return null;
-    await t.destroy();
-    return t.toJSON();
-  }
-
-  async DeleteCommentById(ID : number) {
-    const c = await Comment.findOne(
-      {
-        where : {id : ID}
-      }
-    );
-    if (!c) return null;
-    await c.destroy();
-    return c.toJSON();
-  }
-
-  async PostMediaPost(mediaId : number, postId : number){
-    const mp = MediaPost.build(
-      {
-        MediaId : mediaId,
-        PostId : postId
-      }
-    );
-    await mp.save();
-    return mp.toJSON();
   }
 
   constructor(config: OverclockSequelizeConfig) {
@@ -483,7 +428,7 @@ You can also just manually create the DB in SSMS and make the owner your user! o
 
 export const sequelize = new OverclockSequelize(
   {
-    database: "OverclockMediaCMS", username: "tim", password: "123", 
+    database: "OverclockMediaCMS", username: "rory", password: "Password123!", 
     config: ProductionConfig
   });
 
@@ -514,6 +459,9 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    Salt : {
+      type: DataTypes.STRING
+    }
   },
   {
     timestamps: false
