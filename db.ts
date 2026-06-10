@@ -95,6 +95,7 @@ class OverclockSequelize extends Sequelize {
                          'Title', 
                          'Body',
                          'isDraft',
+                         'Date',
             ],
             include : [{
                 model: User,
@@ -113,6 +114,7 @@ class OverclockSequelize extends Sequelize {
                          'Title', 
                          'Body',
                          'isDraft',
+                         'Date',
                         ],
             include : [{
                 model: User,
@@ -144,10 +146,15 @@ class OverclockSequelize extends Sequelize {
         });
         return u.toJSON();
     }
-    async PostPost(title : string, body : string, isDraft : boolean, date : string){
+    async PostPost(title : string, body : string, isDraft : boolean, date : string, userId : number){
         const p = await Post.create({
-            
+            Title: title,
+            Body: body,
+            isDraft: isDraft,
+            Date: date,
+            UserId: userId
         });
+        return p.toJSON();
     }
 }
 export const sequelize = new OverclockSequelize("OverclockMediaCMS", "tim", "123", {

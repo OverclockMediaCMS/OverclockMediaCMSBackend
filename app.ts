@@ -45,6 +45,17 @@ app.get("/posts/:id", async (req, res) => {
   res.json(obj);
 });
 
+app.post("/posts/create", async (req, res) => {
+  const { Title, Body, isDraft, Date, UserId } = req.body;
+
+  if (!Title || !Body || typeof isDraft !== "boolean" || !Date || !UserId) {
+    return res.status(400).send("missing post fields");
+  }
+
+  const obj = await sequelize.PostPost(Title, Body, isDraft, Date, UserId);
+  res.json(obj);
+});
+
 app.post("/users/create", async (req, res) => {
   const { FirstName, LastName, Email, PasswordHash } = req.body;
   const obj = await sequelize.PostUser(FirstName, LastName, Email, PasswordHash);
