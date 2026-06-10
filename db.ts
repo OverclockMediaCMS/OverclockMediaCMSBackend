@@ -52,7 +52,7 @@ class OverclockSequelize extends Sequelize {
     const p1 = Post.build(
       {
         Title: "This is a post",
-        Body: "# heading 1\n## heading 2\n### heading 3\n*italic*",
+        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
         isDraft: false,
         Date: new Date(),
         UserId: u1.dataValues.id

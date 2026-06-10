@@ -84,6 +84,9 @@ export const PostUserHandler = async (req: express.Request, res: express.Respons
 
 export const PostCommentHandler = async (req: express.Request, res: express.Response) => {
   const {Description, UserId, PostId} = req.body;
+  if(UserId == undefined){
+    return res.status(401).json({error: "No user logged in!"})
+  }
   const obj = await sequelize.PostComment(Description, UserId, PostId);
   res.json(obj);
 }
