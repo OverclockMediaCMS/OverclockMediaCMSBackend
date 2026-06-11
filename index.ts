@@ -128,6 +128,28 @@ export const DeleteUserByIdHandler = async (req: express.Request, res: express.R
   res.json(obj);
 };
 
+export const UpdateUserByIdHandler = async (req: express.Request, res: express.Response) => {
+  const { id } = req.params;
+  const { FirstName, LastName, Email, Role, MobilePhone, InternalPhone } = req.body;
+  try {
+    const obj = await sequelize.UpdateUserById(parseInt(id as string), {
+      FirstName,
+      LastName,
+      Email,
+      Role,
+      MobilePhone,
+      InternalPhone
+    });
+    if (!obj) {
+      return res.status(404).send("User profile not found");
+    }
+    res.json(obj);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  } 
+};
+
 
 app.get("/", IndexRequestHandler);
 
@@ -154,6 +176,9 @@ app.post("/users/login", LoginUserHandler);
 app.get("/comments/:postid", GetCommentsHandler);
 
 app.delete("/users/:id", DeleteUserByIdHandler);
+
+app.put("/users/:id", UpdateUserByIdHandler);
+
 
 app.listen(PORT, () => {
   console.log(`app listening on port ${PORT}`);
