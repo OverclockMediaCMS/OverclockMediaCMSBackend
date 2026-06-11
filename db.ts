@@ -17,8 +17,8 @@ class OverclockSequelize extends Sequelize {
   }
   //calling this will seed the DB with some dummy data
   async seedDummyData() {
-    await this.sync({force:true})
-    //await this.sync();
+    //await this.sync({force:true})
+    await this.sync();
     const u1 = User.build(
       {
         FirstName: 'u1',
@@ -52,7 +52,7 @@ class OverclockSequelize extends Sequelize {
     const p1 = Post.build(
       {
         Title: "This is a post",
-        Body: "# heading 1\n## heading 2\n### heading 3\n*italic*",
+        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
         isDraft: false,
         Date: new Date(),
         UserId: u1.dataValues.id
@@ -99,7 +99,23 @@ class OverclockSequelize extends Sequelize {
       attributes: ['id',
         'FirstName',
         'LastName',
-        'Email'
+        'Email',
+        [
+          sequelize.literal(`(
+            SELECT COUNT(*)
+            FROM [Posts] AS [post]
+            WHERE [post].[UserId] = [User].[id]
+          )`),
+          'postCount'
+        ],
+        [
+          sequelize.literal(`(
+            SELECT COUNT(*)
+            FROM Media AS media
+            WHERE [media].[UserId] = [User].[id]
+          )`),
+          'mediaCount'
+        ]
       ]
     });
     return user;
@@ -264,12 +280,12 @@ class OverclockSequelize extends Sequelize {
     });
     return u.toJSON();
   }
-  async PostPost(title : string, body : string, is_draft : boolean, date : string){
+  async PostPost(title : string, body : string, is_draft : boolean, userId : number){
     const p = await Post.create({
         Title : title,
         Body : body,
         isDraft : is_draft,
-        Date : date
+        UserId : userId
     });
     return p.toJSON();
   }
@@ -301,8 +317,20 @@ class OverclockSequelize extends Sequelize {
       if (!user) return null;
   
       await user.destroy();
-      return user;
+      return user.toJSON();
   }
+
+  async UpdateUserById(ID: number, updateData: { FirstName: string; LastName: string; Email: string; Role: string; MobilePhone: string; InternalPhone: string }) {
+  // Find User in db by ID
+  const user = await User.findOne({ where: { id: ID } });
+  // If found then update
+  if (user) {
+    await user.update(updateData);
+    return user.toJSON(); 
+  }
+  // If not found return null
+  return null;
+}
   
   async DeletePostById(ID : number){
       let post = await Post.findOne({
@@ -374,6 +402,52 @@ class OverclockSequelize extends Sequelize {
     return c.toJSON();
   }
 
+  async DeleteMediaById(ID : number){
+    const m = await Media.findOne(
+      {
+        where : {id : ID}
+      }
+    );
+    if (!m) return null;
+  
+    await m.destroy();
+    return m.toJSON();
+  }
+
+  async DeleteTagById(ID : number) {
+    const t = await Tag.findOne(
+      {
+        where : {id : ID}
+      }
+    );
+    if (!t) return null;
+    await t.destroy();
+    return t.toJSON();
+  }
+
+  async DeleteCommentById(ID : number) {
+    const c = await Comment.findOne(
+      {
+        where : {id : ID}
+      }
+    );
+    if (!c) return null;
+    await c.destroy();
+    return c.toJSON();
+  }
+
+  async PostMediaPost(mediaId : number, postId : number){
+    const mp = MediaPost.build(
+      {
+        MediaId : mediaId,
+        PostId : postId
+      }
+    );
+    await mp.save();
+    return mp.toJSON();
+  }
+
+
   constructor(config: OverclockSequelizeConfig) {
     super(config.database, config.username, config.password, config.config);
   }
@@ -428,7 +502,7 @@ You can also just manually create the DB in SSMS and make the owner your user! o
 
 export const sequelize = new OverclockSequelize(
   {
-    database: "OverclockMediaCMS", username: "rory", password: "Password123!", 
+    database: "OverclockMediaCMS", username: "Sirawit", password: "1234", 
     config: ProductionConfig
   });
 
@@ -442,6 +516,7 @@ const User = sequelize.define(
     PasswordHash: {
       type: DataTypes.STRING,
     },
+
     FirstName: {
       type: DataTypes.STRING,
     },
