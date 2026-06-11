@@ -175,7 +175,7 @@ export const UpdateUserByIdHandler = async (req: express.Request, res: express.R
   const { id } = req.params;
   const { FirstName, LastName, Email, Role, MobilePhone, InternalPhone } = req.body;
   try {
-    const result = await sequelize.UpdateUserById(parseInt(id as string), {
+    const obj = await sequelize.UpdateUserById(parseInt(id as string), {
       FirstName,
       LastName,
       Email,
@@ -183,26 +183,13 @@ export const UpdateUserByIdHandler = async (req: express.Request, res: express.R
       MobilePhone,
       InternalPhone
     });
-    if (!result) {
-    const response = {
-      status : 404,
-      response : "Error - User Not Found"
+    if (!obj) {
+      return res.status(404).send("User profile not found");
     }
-    res.status(404).json(response);
-  } else {
-    const response = {
-      status : 200,
-      response : result
-    }
-    res.status(200).json(response);
-  }
+    res.json(obj);
   } catch (error) {
     console.error(error);
-    const response = {
-      status : 500,
-      response : "Server Error"
-    }
-    res.status(500).json(response);
+    res.status(500).send("Server Error");
   } 
 };
 

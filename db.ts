@@ -99,7 +99,23 @@ class OverclockSequelize extends Sequelize {
       attributes: ['id',
         'FirstName',
         'LastName',
-        'Email'
+        'Email',
+        [
+          sequelize.literal(`(
+            SELECT COUNT(*)
+            FROM [Posts] AS [post]
+            WHERE [post].[UserId] = [User].[id]
+          )`),
+          'postCount'
+        ],
+        [
+          sequelize.literal(`(
+            SELECT COUNT(*)
+            FROM Media AS media
+            WHERE [media].[UserId] = [User].[id]
+          )`),
+          'mediaCount'
+        ]
       ]
     });
     return user;
@@ -431,6 +447,7 @@ class OverclockSequelize extends Sequelize {
     return mp.toJSON();
   }
 
+
   constructor(config: OverclockSequelizeConfig) {
     super(config.database, config.username, config.password, config.config);
   }
@@ -485,7 +502,7 @@ You can also just manually create the DB in SSMS and make the owner your user! o
 
 export const sequelize = new OverclockSequelize(
   {
-    database: "OverclockMediaCMS", username: "rory", password: "Password123!", 
+    database: "OverclockMediaCMS", username: "Sirawit", password: "1234", 
     config: ProductionConfig
   });
 
