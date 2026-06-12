@@ -502,7 +502,7 @@ You can also just manually create the DB in SSMS and make the owner your user! o
 
 export const sequelize = new OverclockSequelize(
   {
-    database: "OverclockMediaCMS", username: "Sirawit", password: "1234", 
+    database: "OverclockMediaCMS", username: "rory", password: "Password123", 
     config: ProductionConfig
   });
 
