@@ -194,8 +194,8 @@ export const UpdateUserByIdHandler = async (req: express.Request, res: express.R
 };
 
 export const CreatePostHandler = async (req: express.Request, res: express.Response) => {
-  const { Title, Body, isDraft, UserId} = req.body;
-  const result = await sequelize.PostPost(Title, Body, isDraft, UserId);
+  const { Title, Body, isDraft, Date, UserId} = req.body;
+  const result = await sequelize.PostPost(Title, Body, isDraft, new Date(Date), UserId);
   if (!result) {
     const response = {
       status : 500,
