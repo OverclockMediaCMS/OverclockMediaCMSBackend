@@ -17,7 +17,11 @@ class OverclockSequelize extends Sequelize {
   }
   //calling this will seed the DB with some dummy data
   async seedDummyData() {
-    //await this.sync({force:true})
+    const userCount = await User.count();
+    if (userCount > 0) {
+      return;
+    }
+    await this.sync({force:true})
     await this.sync();
     const u1 = User.build(
       {
@@ -228,43 +232,54 @@ class OverclockSequelize extends Sequelize {
     });
     return c;
   }
-  async GetMediaThatContains(word : string) {
+  async GetMediaThatContains(word : string, fileExtension?: string) {
+    const whereClause: any = {};
+
+    if (word && word.trim() !== "") {
+      whereClause.Title = {
+        [Op.substring]: word
+      };
+    }
+    if (fileExtension && fileExtension.trim() !== "") {
+      whereClause.FileExtension = fileExtension; // Matches 'jpg', 'mp4', etc.
+    }
+
     let media = await Media.findAll({
-      where : {
-        Title : {
-          [Op.substring] : word
-        }
-      },
+      where: whereClause,
       include: {
         model: User,
-        attributes: ['id',
-          'FirstName',
-          'LastName',
-          'Email'
-        ]
+        attributes: ['id', 'FirstName', 'LastName', 'Email']
       }
     });
     return media;
   }
-  async GetPostThatContains(word : string) {
-    let p = await Post.findAll({
-      where : {
-        Title : {
-          [Op.substring] : word
-        }
+  async GetPostThatContains(word : string, tagId?: number) {
+    const whereClause: any = {};
+
+    if (word && word.trim() !== "") {
+      whereClause.Title = {
+        [Op.substring]: word
+      };
+    }
+    const includeOptions: any[] = [
+      {
+        model: User,
+        attributes: ['id', 'FirstName', 'LastName', 'Email']
       },
-      include: [
-        {
-          model: User,
-          attributes: ['id',
-            'FirstName',
-            'LastName',
-            'Email'
-          ]
-        },
-        {model: Tag },
-        {model: Comment}
-    ],
+      {
+        model: Tag,
+        where: tagId ? { id: tagId } : undefined, 
+        required: tagId ? true : false
+      },
+      {
+        model: Comment,
+        include: [{ model: User, attributes: ['id', 'FirstName', 'LastName'] }]
+      }
+    ];
+
+    let p = await Post.findAll({
+      where: whereClause,
+      include: includeOptions,
     });
     return p;
   }
@@ -503,7 +518,7 @@ You can also just manually create the DB in SSMS and make the owner your user! o
 
 export const sequelize = new OverclockSequelize(
   {
-    database: "OverclockMediaCMS", username: "rory", password: "Password123!", 
+    database: "OverclockMediaCMS", username: "Sirawit", password: "1234", 
     config: ProductionConfig
   });
 
