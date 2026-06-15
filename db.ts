@@ -17,11 +17,7 @@ class OverclockSequelize extends Sequelize {
   }
   //calling this will seed the DB with some dummy data
   async seedDummyData() {
-    const userCount = await User.count();
-    if (userCount > 0) {
-      return;
-    }
-    await this.sync({force:true})
+    //await this.sync({force:true})
     await this.sync();
     const u1 = User.build(
       {
