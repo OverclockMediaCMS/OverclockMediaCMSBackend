@@ -17,8 +17,8 @@ class OverclockSequelize extends Sequelize {
   }
   //calling this will seed the DB with some dummy data
   async seedDummyData() {
-    //await this.sync({force:true})
-    await this.sync();
+    await this.sync({force:true})
+    //await this.sync();
     const u1 = User.build(
       {
         FirstName: 'u1',
@@ -51,7 +51,7 @@ class OverclockSequelize extends Sequelize {
     await tag1.save();
     const p1 = Post.build(
       {
-        Title: "This is a post",
+        Title: "post 1",
         Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
         isDraft: false,
         Date: new Date(),
@@ -60,8 +60,35 @@ class OverclockSequelize extends Sequelize {
     );
     const p2 = Post.build(
       {
-        Title: "This is another post",
-        Body: "This is the body",
+        Title: "post 2",
+        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+        isDraft: false,
+        Date: new Date(),
+        UserId: u2.dataValues.id
+      }
+    );
+    const p3 = Post.build(
+      {
+        Title: "post 3",
+        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+        isDraft: false,
+        Date: new Date(),
+        UserId: u1.dataValues.id
+      }
+    );
+    const p4 = Post.build(
+      {
+        Title: "post 4",
+        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+        isDraft: false,
+        Date: new Date(),
+        UserId: u2.dataValues.id
+      }
+    );
+    const p5 = Post.build(
+      {
+        Title: "post 5",
+        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
         isDraft: false,
         Date: new Date(),
         UserId: u2.dataValues.id
@@ -78,7 +105,25 @@ class OverclockSequelize extends Sequelize {
     );
     const m2 = Media.build(
       {
+        Title: "photo2",
+        FilePath : "media/photos/photo1",
+        FileExtension: "png", 
+        UserId: u1.dataValues.id,
+        Date: new Date(),
+      }
+    );
+    const m3 = Media.build(
+      {
         Title: "video1",
+        FilePath : "media/videos/video1",
+        FileExtension: "mp4", 
+        UserId: u1.dataValues.id,
+        Date: new Date(),
+      }
+    );
+    const m4 = Media.build(
+      {
+        Title: "video2",
         FilePath : "media/videos/video1",
         FileExtension: "mp4", 
         UserId: u1.dataValues.id,
@@ -87,8 +132,13 @@ class OverclockSequelize extends Sequelize {
     );
     await m1.save();
     await m2.save();
+    await m3.save();
+    await m4.save();
     await p1.save();
     await p2.save();
+    await p3.save();
+    await p4.save();
+    await p5.save();
     await (p1 as any).addTags(tag1);
     await (p2 as any).addTags(tag2);
 
@@ -514,7 +564,7 @@ You can also just manually create the DB in SSMS and make the owner your user! o
 
 export const sequelize = new OverclockSequelize(
   {
-    database: "OverclockMediaCMS", username: "Sirawit", password: "1234", 
+    database: "OverclockMediaCMS", username: "rory", password: "Password123!", 
     config: ProductionConfig
   });
 
