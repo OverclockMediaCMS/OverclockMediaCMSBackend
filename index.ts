@@ -194,7 +194,7 @@ export const UpdateUserByIdHandler = async (req: express.Request, res: express.R
 };
 
 export const CreatePostHandler = async (req: express.Request, res: express.Response) => {
-  const { Title, Body, isDraft, UserId} = req.body;
+  const { Title, Body, isDraft, Date, UserId} = req.body;
   const result = await sequelize.PostPost(Title, Body, isDraft, UserId);
   if (!result) {
     const response = {
@@ -339,26 +339,35 @@ export const PostMediaPostHandler = async (req: express.Request, res: express.Re
 
 export const GetPostsHandler = async (req: express.Request, res: express.Response) => {
   let result;
-  const {id,contains} = req.query;
-  
-  if(id != undefined)
+  const { id, contains, tagId } = req.query;
+
+  if(id != undefined){
     result = await sequelize.GetPostById(parseInt(id as string));
-  else if (contains != undefined)
-    result = await sequelize.GetPostThatContains(contains as string);
-  else
+  } else if(contains != undefined || tagId != undefined){
+    const parsedTagId = tagId ? parseInt(tagId as string) : undefined;
+    result = await sequelize.GetPostThatContains((contains as string) || "", parsedTagId);
+  } else {
     result = await sequelize.GetMostRecentPosts();
+  }
   res.json(result);
 };
 
 export const GetMediaHandler = async (req: express.Request, res: express.Response) => {
   let result;
-  const {id,contains} = req.query;
-  if(id != undefined)
+  const { id, contains, fileExtension } = req.query;
+
+  if (id != undefined) {
     result = await sequelize.GetMediaById(parseInt(id as string));
-  else if (contains != undefined)
-    result = await sequelize.GetMediaThatContains(contains as string);
-  else
+  } else if (contains != undefined || fileExtension != undefined) {
+    // Pass both parameters directly to your clean database class method
+    result = await sequelize.GetMediaThatContains(
+      (contains as string) || "", 
+      fileExtension as string
+    );
+  } else {
     result = await sequelize.GetMostRecentMedia();
+  }
+  
   res.json(result);
 };
 
