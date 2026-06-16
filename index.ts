@@ -230,8 +230,8 @@ export const DeletePostHandler = async (req: express.Request, res: express.Respo
 }
 
 export const PostMediaHandler = async (req: express.Request, res: express.Response) => {
-  const {Title, FilePath, FileExtension} = req.body;
-  const result = await sequelize.PostMedia(Title, FilePath, FileExtension);
+  const {Title, FilePath, FileExtension, isDraft} = req.body;
+  const result = await sequelize.PostMedia(Title, FilePath, FileExtension, isDraft ?? false);
   if (!result) {
     const response = {
       status : 500,
@@ -371,6 +371,43 @@ export const GetMediaHandler = async (req: express.Request, res: express.Respons
   res.json(result);
 };
 
+export const GetDraftsHandler = async (req: express.Request, res: express.Response) => {
+  const { id, userId } = req.query;
+
+  if(id != undefined){
+    const result = await sequelize.GetPostById(parseInt(id as string));
+    return  res.json(result);
+  }
+
+  if(!userId){
+    return res.status(400).json();
+  }
+
+  const parsedUserId = parseInt(userId as string);
+  
+  const [postDrafts, mediaDrafts] = await Promise.all([
+    sequelize.GetDraftPosts(parsedUserId),
+    sequelize.GetMediaDrafts(parsedUserId)
+  ]);
+
+  const formattedPosts = postDrafts.map((p: any) => {
+    const post = typeof p.toJSON === 'function' ? p.toJSON() : p;
+    return {...post, type: 'post'};
+  });
+
+  const formattedMedia = mediaDrafts.map((m: any) => {
+    const media = typeof m.toJSON === 'function' ? m.toJSON() : m;
+    return {...media, type: 'media'};
+  });
+
+  const combined = [...formattedPosts, ...formattedMedia].sort(
+    (a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime()
+  );
+
+  res.json(combined);
+};
+
+
 app.get("/", IndexRequestHandler);
 
 // User Endpoints
@@ -417,6 +454,10 @@ app.post("/comment", PostCommentHandler);
 app.get("/comments/:postid", GetCommentsByPostIdHandler);
 
 app.delete("/comments/:id", DeleteCommentHandler);
+
+app.get("/drafts", GetDraftsHandler);
+
+
 
 // TagPost Endpoints - TBD
 

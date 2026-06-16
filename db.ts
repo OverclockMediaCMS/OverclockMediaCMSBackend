@@ -101,6 +101,7 @@ class OverclockSequelize extends Sequelize {
         FileExtension: "jpg", 
         UserId: u1.dataValues.id,
         Date: new Date(),
+        isDraft: false,
       }
     );
     const m2 = Media.build(
@@ -110,6 +111,7 @@ class OverclockSequelize extends Sequelize {
         FileExtension: "png", 
         UserId: u1.dataValues.id,
         Date: new Date(),
+        isDraft: false,
       }
     );
     const m3 = Media.build(
@@ -119,6 +121,7 @@ class OverclockSequelize extends Sequelize {
         FileExtension: "mp4", 
         UserId: u1.dataValues.id,
         Date: new Date(),
+        isDraft: false,
       }
     );
     const m4 = Media.build(
@@ -128,6 +131,7 @@ class OverclockSequelize extends Sequelize {
         FileExtension: "mp4", 
         UserId: u1.dataValues.id,
         Date: new Date(),
+        isDraft: false,
       }
     );
     await m1.save();
@@ -204,6 +208,7 @@ class OverclockSequelize extends Sequelize {
   }
   async GetMostRecentPosts() {
     let posts = await Post.findAll({
+      where: {isDraft: false},
       order : [['Date', 'DESC']],
       limit: 5,
       attributes: ['id',
@@ -233,6 +238,7 @@ class OverclockSequelize extends Sequelize {
   }
   async GetMostRecentMedia() {
     let media = await Media.findAll({
+      where: {isDraft: false},
       include: {
         model: User,
         attributes: ['id',
@@ -351,11 +357,12 @@ class OverclockSequelize extends Sequelize {
     });
     return p.toJSON();
   }
-  async PostMedia(title : string, filePath : string, fileExtension : string){
+  async PostMedia(title : string, filePath : string, fileExtension : string, isDraft : boolean){
         const m = await Media.create({
             Title : title,
             FilePath : filePath,
-            fileExtension : fileExtension
+            fileExtension : fileExtension,
+            isDraft: isDraft
         });
         return m.toJSON();
   }
@@ -509,6 +516,52 @@ class OverclockSequelize extends Sequelize {
     return mp.toJSON();
   }
 
+  async GetMediaDrafts(userId: number) {
+    let mediaDrafts = await Media.findAll({
+      where: {
+        isDraft: true,
+        UserId: userId
+      },
+      include: {
+        model: User,
+        attributes: ['id',
+          'FirstName',
+          'LastName',
+          'Email',
+        ]
+      }
+    });
+    return mediaDrafts;
+  }
+
+  async GetDraftPosts(userId: number) {
+    let posts = await Post.findAll({
+      where: {
+        isDraft: true,
+        UserId: userId
+      },
+      order : [['Date', 'DESC']],
+      limit: 5,
+      attributes: ['id',
+          'Title',
+          'Body',
+          'isDraft',
+          'Date',
+        ],
+      include: [{
+        model: User,
+        attributes: ['id',
+          'FirstName',
+          'LastName',
+          'Email'
+        ]
+      },
+      { model: Tag},
+      { model : Comment}],
+    });
+    return posts;
+  }
+
 
   constructor(config: OverclockSequelizeConfig) {
     super(config.database, config.username, config.password, config.config);
@@ -635,6 +688,11 @@ const Media = sequelize.define(
     Date: {
       type: DataTypes.DATE,
       allowNull: false,
+    },
+    isDraft: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     }
   },
   {
