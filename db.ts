@@ -54,8 +54,8 @@ class OverclockSequelize extends Sequelize {
     await tag1.save();
     const p1 = Post.build(
       {
-        Title: "post 1",
-        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+        Title: "A Guide to Urban Gardening",
+        Body: `## Getting Started\n### Choosing Your Space\nWhether you have a balcony, rooftop, or small backyard, almost any space can be transformed into a productive garden. Start by assessing how much sunlight your space receives throughout the day.\n### Essential Tools\nYou don't need much to get started. A trowel, watering can, and some basic pots will get you a long way. Invest in quality soil before anything else.\n## Choosing What to Grow\n### Vegetables\nTomatoes, lettuce, and herbs are the best starting points for urban gardeners. They grow quickly, don't need much space, and are satisfying to harvest.\n### Herbs\nBasil, mint, and chives are nearly impossible to kill and incredibly useful in the kitchen. Keep them near a sunny window if space is tight.\n### Flowers\nMarigolds and nasturtiums are great companions for vegetables, deterring pests naturally while adding colour to your garden.\n## Soil and Nutrition\n### Picking the Right Soil\nNever use soil straight from the ground in containers — it compacts too easily. Use a quality potting mix designed for container gardening.\n### Composting\nEven in a small apartment you can maintain a worm farm or bokashi bin to turn food scraps into rich compost for your plants.\n## Watering and Maintenance\n### How Often to Water\nMost container plants need watering more frequently than garden beds since they dry out faster. Check the top inch of soil — if it's dry, water it.\n### Dealing with Pests\nAphids and fungus gnats are the most common urban garden pests. A diluted neem oil spray handles both without harsh chemicals.\n## Harvesting\n### Knowing When to Pick\nHarvesting at the right time encourages more growth. For most leafy greens, pick outer leaves first and let the centre keep producing.\n### Storing Your Produce\nFresh herbs last longest when stored upright in a glass of water in the fridge, loosely covered with a plastic bag.`,
         isDraft: false,
         Date: new Date(),
         UserId: u1.dataValues.id
@@ -430,7 +430,7 @@ class OverclockSequelize extends Sequelize {
             const token = jwt.sign({ userId: u.id }, SECRET_KEY, {
               expiresIn: '1m'
             }); 
-            return {user, token};
+            return user;
         }else{
             //not logged in
             return undefined;
@@ -713,7 +713,7 @@ const Post = sequelize.define(
       allowNull: false,
     },
     Body: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     isDraft: {
