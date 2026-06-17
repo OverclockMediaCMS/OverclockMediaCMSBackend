@@ -3,6 +3,35 @@ import { sequelize } from './db.ts'
 import cors from 'cors';
 import helmet from 'helmet';
 import { parse } from 'node:path';
+import jwt from 'jsonwebtoken'
+import 'dotenv/config';
+
+let SECRET_KEY = process.env.SECRET_KEY;
+import path from 'node:path';
+import fs from 'node:fs';
+import multer from 'multer';
+import { error } from 'node:console';
+
+const uploadDir = 'uploads';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+// Configure Multer Disk Storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir); // Saves files into the 'uploads' folder
+  },
+  filename: (req, file, cb) => {
+    // Generates a unique filename using timestamp to avoid overwriting duplicates
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+  }
+});
+
+// Initialize Multer middleware
+const upload = multer({ storage: storage });
 
 //instructions for setting up connection in db.ts
 await sequelize.tryConnect();
@@ -14,7 +43,39 @@ app.use(cors());
 app.use(express.json());
 app.use(helmet());
 
-app.use('/media-files', express.static('uploads'));
+function createToken(uId : number) : string | null {
+  if(!SECRET_KEY){
+    console.log("no secret key found");
+    return null;
+  }
+  const token = jwt.sign({ userId: uId}, SECRET_KEY, {
+    expiresIn: '15m'
+  }); 
+  return token;
+}
+
+function validateToken(req : express.Request, res : express.Response) : boolean {
+  const token = req.headers.authorization?.split(' ')[1];
+  if(!token){
+    res.status(401).json({error: "Invalid Token"});
+    return false;
+  }
+  try{
+    const decodedToken = jwt.verify(token, SECRET_KEY!);
+  }catch(err){
+    res.status(401).json({error: "Invalid Token"});
+    return false;
+  }
+  return true;
+}
+
+app.use('/media-files', express.static('uploads', {
+  setHeaders: (res) => {
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.set('Access-Control-Allow-Origin', '*'); 
+  }
+}));
+
 
 export const IndexRequestHandler = (req: express.Request, res: express.Response) => {
   console.log(req, res);
@@ -23,6 +84,8 @@ export const IndexRequestHandler = (req: express.Request, res: express.Response)
 }
 
 export const GetUsersHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const result = await sequelize.GetAllUsers();
   if (!result) {
     const response = {
@@ -40,6 +103,8 @@ export const GetUsersHandler = async (req: express.Request, res: express.Respons
 }
 
 export const GetUserByIdHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { id } = req.params;
   const result = await sequelize.GetUserById(parseInt(id as string));
   if (!result) {
@@ -58,6 +123,8 @@ export const GetUserByIdHandler = async (req: express.Request, res: express.Resp
 }
 
 export const SearchUsersHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { FirstName, LastName, Email } = req.query;
 
   const obj = await sequelize.SearchUsers({
@@ -70,6 +137,8 @@ export const SearchUsersHandler = async (req: express.Request, res: express.Resp
 };
 
 export const GetTagsHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   let result = await sequelize.GetAllTags();
   if (!result) {
     const response = {
@@ -88,6 +157,8 @@ export const GetTagsHandler = async (req: express.Request, res: express.Response
 
 
 export const PostUserHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { FirstName, LastName, Email, PasswordHash, InternalPhone, MobilePhone, Role } = req.body;
   const result = await sequelize.PostUser(FirstName, LastName, Email, PasswordHash, InternalPhone, MobilePhone, Role);
   if (!result) {
@@ -106,6 +177,8 @@ export const PostUserHandler = async (req: express.Request, res: express.Respons
 };
 
 export const PostCommentHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;
   const { Description, UserId, PostId } = req.body;
   const result = await sequelize.PostComment(Description, UserId, PostId);
   if (!result) {
@@ -125,6 +198,8 @@ export const PostCommentHandler = async (req: express.Request, res: express.Resp
 
 
 export const GetCommentsByPostIdHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { postid } = req.params;
   const result = await sequelize.GetCommentsByPostId(parseInt(postid as string));
   if (!result) {
@@ -149,12 +224,16 @@ export const LoginUserHandler = async (req: express.Request, res: express.Respon
   if (user == undefined) {
     return res.status(401).json({ error: "Invaild Email or Password" });
   } else {
-    res.status(200).json(user);
+    const token = createToken(user.dataValues.id);
+    if(token == null)
+      return res.status(401).json({ error: "Login valid with server error" });
+    res.status(200).json({user, token});
   }
 }
 
-
 export const DeleteUserByIdHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { id } = req.params;
   const result = await sequelize.DeleteUserById(parseInt(id as string));
   if (!result) {
@@ -173,6 +252,8 @@ export const DeleteUserByIdHandler = async (req: express.Request, res: express.R
 };
 
 export const UpdateUserByIdHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { id } = req.params;
   const { FirstName, LastName, Email, Role, MobilePhone, InternalPhone } = req.body;
   try {
@@ -195,24 +276,56 @@ export const UpdateUserByIdHandler = async (req: express.Request, res: express.R
 };
 
 export const CreatePostHandler = async (req: express.Request, res: express.Response) => {
-  const { Title, Body, isDraft, UserId } = req.body;
-  const result = await sequelize.PostPost(Title, Body, isDraft, UserId);
-  if (!result) {
-    const response = {
-      status: 500,
-      response: "Cannot Create Post - Internal Error"
+  if(!validateToken(req, res))
+    return;  
+  try {
+    const { Title, Body, isDraft, UserId } = req.body;
+    const files = (req.files as Express.Multer.File[]) || []; 
+    const isDraftBoolean = isDraft === 'true' || isDraft === true;
+
+    // 1. Create the only one parent Post row
+    const createdPost = await sequelize.PostPost(Title, Body, isDraftBoolean, Number(UserId));
+    
+    if (!createdPost) {
+      return res.status(500).json({ error: "Could not create post record." });
     }
-    res.status(500).json(response);
-  } else {
-    const response = {
-      status: 200,
-      response: result
+
+    // 2. If files are attached, group their data into JSON arrays
+    if (files.length > 0) {
+      const filePaths: string[] = [];
+      const fileExtensions: string[] = [];
+
+      files.forEach(file => {
+        filePaths.push(file.filename);
+        fileExtensions.push(file.originalname.split('.').pop() || '');
+      });
+      
+      // Save media as string in one row
+      const mediaAsset = await sequelize.PostMedia(
+        Title || files[0].originalname, 
+        JSON.stringify(filePaths),       // Stores as: '["file1.png","file2.jpg"]'
+        JSON.stringify(fileExtensions),  // Stores as: '["png","jpg"]'
+        isDraftBoolean, 
+        Number(UserId)
+      );
+      
+      // Link post and media that it
+      if (mediaAsset) {
+        await sequelize.PostMediaPost(mediaAsset.id, createdPost.id);
+      }
     }
-    res.status(200).json(response);
+
+    return res.status(200).json({ response: createdPost });
+
+  } catch (err: any) {
+    console.error("CreatePostHandler Error:", err);
+    return res.status(500).json({ error: err.message || "Internal Server Error" });
   }
-}
+};
 
 export const DeletePostHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { id } = req.params;
   const result = await sequelize.DeletePostById(parseInt(id as string));
   if (!result) {
@@ -231,24 +344,75 @@ export const DeletePostHandler = async (req: express.Request, res: express.Respo
 }
 
 export const PostMediaHandler = async (req: express.Request, res: express.Response) => {
-  const { Title, FilePath, FileExtension, isDraft } = req.body;
-  const result = await sequelize.PostMedia(Title, FilePath, FileExtension, isDraft ?? false);
-  if (!result) {
-    const response = {
-      status: 500,
-      response: "Cannot Create Media - Internal Error"
+  // try {
+  //   const files = req.files as Express.Multer.File[];
+
+  //   if (!files || files.length === 0) {
+  //     return res.status(400).json({ error: "No files uploaded" });
+  //   }
+
+  //   const { Title, isDraft, UserId } = req.body;
+  //   const numberedUserId = Number(UserId);
+  //   const isDraftBoolean = isDraft === 'true' || isDraft === true;
+  //   const savedAssets = [];
+
+  //   for (const file of files) {
+  //     const filePath = file.path;
+  //     const fileExtension = path.extname(file.originalname).replace('.', '');
+  //     const finalTitle = Title || file.originalname;
+
+  //     const result = await sequelize.PostMedia(finalTitle, filePath, fileExtension, isDraftBoolean, numberedUserId);
+  //     if (result) {
+  //       savedAssets.push(result);
+  //     }
+  //   }
+
+  //   res.status(200).json({ status: 200, response: savedAssets[0] });
+  // } catch (err) {
+  //   console.error("PostMediaHandler Error:", err);
+  //   res.status(500).json({ error: "Server upload error" });
+  // }
+  if(!validateToken(req, res))
+    return;  
+  try {
+    const files = (req.files as Express.Multer.File[]) || [];
+
+    if (files.length === 0) {
+      return res.status(400).json({ error: "No files uploaded" });
     }
-    res.status(500).json(response);
-  } else {
-    const response = {
-      status: 200,
-      response: result
-    }
-    res.status(200).json(response);
+
+    const { Title, isDraft, UserId } = req.body;
+    const numberedUserId = Number(UserId);
+    const isDraftBoolean = isDraft === 'true' || isDraft === true;
+
+    // APPROACH B COMPATIBLE: Group all files into arrays just like CreatePostHandler does
+    const filePaths: string[] = [];
+    const fileExtensions: string[] = [];
+
+    files.forEach(file => {
+      filePaths.push(file.filename);
+      fileExtensions.push(file.originalname.split('.').pop() || '');
+    });
+
+    // Save exactly ONE row in your Media table with JSON arrays
+    const result = await sequelize.PostMedia(
+      Title || files[0].originalname, 
+      JSON.stringify(filePaths),       // Stores as: '["file1.png","file2.jpg"]'
+      JSON.stringify(fileExtensions),  // Stores as: '["png","jpg"]'
+      isDraftBoolean, 
+      numberedUserId
+    );
+
+    res.status(200).json({ status: 200, response: result });
+  } catch (err) {
+    console.error("PostMediaHandler Error:", err);
+    res.status(500).json({ error: "Server upload error" });
   }
 }
 
 export const DeleteMediaHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;
   const { id } = req.params;
   const result = await sequelize.DeleteMediaById(parseInt(id as string));
   if (!result) {
@@ -267,6 +431,8 @@ export const DeleteMediaHandler = async (req: express.Request, res: express.Resp
 }
 
 export const PostTagHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { Title } = req.body;
   const result = await sequelize.PostTag(Title);
   if (!result) {
@@ -285,6 +451,8 @@ export const PostTagHandler = async (req: express.Request, res: express.Response
 }
 
 export const DeleteTagHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;
   const { id } = req.params;
   const result = await sequelize.DeleteTagById(parseInt(id as string));
   if (!result) {
@@ -303,6 +471,8 @@ export const DeleteTagHandler = async (req: express.Request, res: express.Respon
 }
 
 export const DeleteCommentHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;
   const { id } = req.params;
   const result = await sequelize.DeleteCommentById(parseInt(id as string));
   if (!result) {
@@ -321,6 +491,8 @@ export const DeleteCommentHandler = async (req: express.Request, res: express.Re
 }
 
 export const PostMediaPostHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;
   const { MediaId, PostId } = req.body;
   const result = await sequelize.PostMediaPost(MediaId, PostId);
   if (!result) {
@@ -339,6 +511,8 @@ export const PostMediaPostHandler = async (req: express.Request, res: express.Re
 }
 
 export const GetPostsHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;
   let result;
   const { id, contains, tagId } = req.query;
 
@@ -354,6 +528,8 @@ export const GetPostsHandler = async (req: express.Request, res: express.Respons
 };
 
 export const GetMediaHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   let result;
   const { id, contains, fileExtension } = req.query;
 
@@ -373,6 +549,8 @@ export const GetMediaHandler = async (req: express.Request, res: express.Respons
 };
 
 export const GetDraftsHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { id, userId } = req.query;
 
   if (id != undefined) {
@@ -409,6 +587,8 @@ export const GetDraftsHandler = async (req: express.Request, res: express.Respon
 };
 
 export const DeleteDraftHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;    
   const { id, type } = req.query;
 
   if (!id || !type) {
@@ -462,16 +642,18 @@ app.delete("/users/:id", DeleteUserByIdHandler);
 // Post Endpoints
 app.get("/posts", GetPostsHandler);
 
-app.post("/posts/create", CreatePostHandler);
+app.post("/posts/create", upload.array('media', 10), CreatePostHandler);
 
 app.delete("/posts/:id", DeletePostHandler);
 
 // Media Endpoints
 app.get("/media", GetMediaHandler);
 
-app.post("/media/create", PostMediaHandler);
+app.post("/media/create", upload.array('media', 10), PostMediaHandler);
 
 app.delete("/media/:id", DeleteMediaHandler);
+
+
 
 // Tag Endpoints
 app.get("/tags", GetTagsHandler);
