@@ -3,6 +3,10 @@ import { sequelize } from './db.ts'
 import cors from 'cors';
 import helmet from 'helmet';
 import { parse } from 'node:path';
+import jwt from 'jsonwebtoken'
+import 'dotenv/config';
+
+let SECRET_KEY = process.env.SECRET_KEY;
 
 //instructions for setting up connection in db.ts
 await sequelize.tryConnect();
@@ -14,8 +18,33 @@ app.use(cors());
 app.use(express.json());
 app.use(helmet());
 
-app.use('/media-files', express.static('uploads'));
+function createToken(uId : number) : string | null {
+  if(!SECRET_KEY){
+    console.log("no secret key found");
+    return null;
+  }
+  const token = jwt.sign({ userId: uId}, SECRET_KEY, {
+    expiresIn: '15m'
+  }); 
+  return token;
+}
 
+function validateToken(req : express.Request, res : express.Response) : boolean {
+  const token = req.headers.authorization?.split(' ')[1];
+  if(!token){
+    res.status(401).json({error: "Invalid Token"});
+    return false;
+  }
+  try{
+    const decodedToken = jwt.verify(token, SECRET_KEY!);
+  }catch(err){
+    res.status(401).json({error: "Invalid Token"});
+    return false;
+  }
+  return true;
+}
+
+app.use('/media-files', express.static('uploads'));
 
 export const IndexRequestHandler = (req: express.Request, res: express.Response) => {
   console.log(req, res);
@@ -24,6 +53,8 @@ export const IndexRequestHandler = (req: express.Request, res: express.Response)
 }
 
 export const GetUsersHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const result = await sequelize.GetAllUsers();
   if (!result) {
     const response = {
@@ -41,6 +72,8 @@ export const GetUsersHandler = async (req: express.Request, res: express.Respons
 }
 
 export const GetUserByIdHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { id } = req.params;
   const result = await sequelize.GetUserById(parseInt(id as string));
   if (!result) {
@@ -59,6 +92,8 @@ export const GetUserByIdHandler = async (req: express.Request, res: express.Resp
 }
 
 export const SearchUsersHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { FirstName, LastName, Email } = req.query;
 
   const obj = await sequelize.SearchUsers({
@@ -71,6 +106,8 @@ export const SearchUsersHandler = async (req: express.Request, res: express.Resp
 };
 
 export const GetTagsHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   let result = await sequelize.GetAllTags();
   if (!result) {
     const response = {
@@ -89,6 +126,8 @@ export const GetTagsHandler = async (req: express.Request, res: express.Response
 
 
 export const PostUserHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { FirstName, LastName, Email, PasswordHash, InternalPhone, MobilePhone, Role } = req.body;
   const result = await sequelize.PostUser(FirstName, LastName, Email, PasswordHash, InternalPhone, MobilePhone, Role);
   if (!result) {
@@ -107,6 +146,8 @@ export const PostUserHandler = async (req: express.Request, res: express.Respons
 };
 
 export const PostCommentHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;
   const { Description, UserId, PostId } = req.body;
   const result = await sequelize.PostComment(Description, UserId, PostId);
   if (!result) {
@@ -126,6 +167,8 @@ export const PostCommentHandler = async (req: express.Request, res: express.Resp
 
 
 export const GetCommentsByPostIdHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { postid } = req.params;
   const result = await sequelize.GetCommentsByPostId(parseInt(postid as string));
   if (!result) {
@@ -150,12 +193,16 @@ export const LoginUserHandler = async (req: express.Request, res: express.Respon
   if (user == undefined) {
     return res.status(401).json({ error: "Invaild Email or Password" });
   } else {
-    res.status(200).json(user);
+    const token = createToken(user.dataValues.id);
+    if(token == null)
+      return res.status(401).json({ error: "Login valid with server error" });
+    res.status(200).json({user, token});
   }
 }
 
-
 export const DeleteUserByIdHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { id } = req.params;
   const result = await sequelize.DeleteUserById(parseInt(id as string));
   if (!result) {
@@ -174,6 +221,8 @@ export const DeleteUserByIdHandler = async (req: express.Request, res: express.R
 };
 
 export const UpdateUserByIdHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { id } = req.params;
   const { FirstName, LastName, Email, Role, MobilePhone, InternalPhone } = req.body;
   try {
@@ -196,6 +245,8 @@ export const UpdateUserByIdHandler = async (req: express.Request, res: express.R
 };
 
 export const CreatePostHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { Title, Body, isDraft, Date, UserId } = req.body;
   const result = await sequelize.PostPost(Title, Body, isDraft, UserId);
   if (!result) {
@@ -214,6 +265,8 @@ export const CreatePostHandler = async (req: express.Request, res: express.Respo
 }
 
 export const DeletePostHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { id } = req.params;
   const result = await sequelize.DeletePostById(parseInt(id as string));
   if (!result) {
@@ -232,6 +285,8 @@ export const DeletePostHandler = async (req: express.Request, res: express.Respo
 }
 
 export const PostMediaHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { Title, FilePath, FileExtension, isDraft } = req.body;
   const result = await sequelize.PostMedia(Title, FilePath, FileExtension, isDraft ?? false);
   if (!result) {
@@ -250,6 +305,8 @@ export const PostMediaHandler = async (req: express.Request, res: express.Respon
 }
 
 export const DeleteMediaHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;
   const { id } = req.params;
   const result = await sequelize.DeleteMediaById(parseInt(id as string));
   if (!result) {
@@ -268,6 +325,8 @@ export const DeleteMediaHandler = async (req: express.Request, res: express.Resp
 }
 
 export const PostTagHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { Title } = req.body;
   const result = await sequelize.PostTag(Title);
   if (!result) {
@@ -286,6 +345,8 @@ export const PostTagHandler = async (req: express.Request, res: express.Response
 }
 
 export const DeleteTagHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;
   const { id } = req.params;
   const result = await sequelize.DeleteTagById(parseInt(id as string));
   if (!result) {
@@ -304,6 +365,8 @@ export const DeleteTagHandler = async (req: express.Request, res: express.Respon
 }
 
 export const DeleteCommentHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;
   const { id } = req.params;
   const result = await sequelize.DeleteCommentById(parseInt(id as string));
   if (!result) {
@@ -322,6 +385,8 @@ export const DeleteCommentHandler = async (req: express.Request, res: express.Re
 }
 
 export const PostMediaPostHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;
   const { MediaId, PostId } = req.body;
   const result = await sequelize.PostMediaPost(MediaId, PostId);
   if (!result) {
@@ -340,6 +405,8 @@ export const PostMediaPostHandler = async (req: express.Request, res: express.Re
 }
 
 export const GetPostsHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;
   let result;
   const { id, contains, tagId } = req.query;
 
