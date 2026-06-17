@@ -2,6 +2,9 @@ import { Sequelize, DataTypes, Op } from 'sequelize';
 import SQLite from 'sqlite3';
 import crypto from 'node:crypto'
 import jwt from 'jsonwebtoken'
+
+const SECRET_KEY = "sup3rs3cr3tk3y";
+
 class OverclockSequelize extends Sequelize {
   async tryConnect() {
     try {
@@ -17,8 +20,10 @@ class OverclockSequelize extends Sequelize {
   }
   //calling this will seed the DB with some dummy data
   async seedDummyData() {
-    //await this.sync({force:true})
-    await this.sync();
+    if(User.name.length > 0) return;
+
+    await this.sync({force:true})
+    //await this.sync();
     const u1 = User.build(
       {
         FirstName: 'u1',
@@ -51,8 +56,8 @@ class OverclockSequelize extends Sequelize {
     await tag1.save();
     const p1 = Post.build(
       {
-        Title: "This is a post",
-        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+        Title: "A Guide to Urban Gardening",
+        Body: `## Getting Started\n### Choosing Your Space\nWhether you have a balcony, rooftop, or small backyard, almost any space can be transformed into a productive garden. Start by assessing how much sunlight your space receives throughout the day.\n### Essential Tools\nYou don't need much to get started. A trowel, watering can, and some basic pots will get you a long way. Invest in quality soil before anything else.\n## Choosing What to Grow\n### Vegetables\nTomatoes, lettuce, and herbs are the best starting points for urban gardeners. They grow quickly, don't need much space, and are satisfying to harvest.\n### Herbs\nBasil, mint, and chives are nearly impossible to kill and incredibly useful in the kitchen. Keep them near a sunny window if space is tight.\n### Flowers\nMarigolds and nasturtiums are great companions for vegetables, deterring pests naturally while adding colour to your garden.\n## Soil and Nutrition\n### Picking the Right Soil\nNever use soil straight from the ground in containers — it compacts too easily. Use a quality potting mix designed for container gardening.\n### Composting\nEven in a small apartment you can maintain a worm farm or bokashi bin to turn food scraps into rich compost for your plants.\n## Watering and Maintenance\n### How Often to Water\nMost container plants need watering more frequently than garden beds since they dry out faster. Check the top inch of soil — if it's dry, water it.\n### Dealing with Pests\nAphids and fungus gnats are the most common urban garden pests. A diluted neem oil spray handles both without harsh chemicals.\n## Harvesting\n### Knowing When to Pick\nHarvesting at the right time encourages more growth. For most leafy greens, pick outer leaves first and let the centre keep producing.\n### Storing Your Produce\nFresh herbs last longest when stored upright in a glass of water in the fridge, loosely covered with a plastic bag.`,
         isDraft: false,
         Date: new Date(),
         UserId: u1.dataValues.id
@@ -60,8 +65,35 @@ class OverclockSequelize extends Sequelize {
     );
     const p2 = Post.build(
       {
-        Title: "This is another post",
-        Body: "This is the body",
+        Title: "post 2",
+        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+        isDraft: false,
+        Date: new Date(),
+        UserId: u2.dataValues.id
+      }
+    );
+    const p3 = Post.build(
+      {
+        Title: "post 3",
+        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+        isDraft: false,
+        Date: new Date(),
+        UserId: u1.dataValues.id
+      }
+    );
+    const p4 = Post.build(
+      {
+        Title: "post 4",
+        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+        isDraft: false,
+        Date: new Date(),
+        UserId: u2.dataValues.id
+      }
+    );
+    const p5 = Post.build(
+      {
+        Title: "post 5",
+        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
         isDraft: false,
         Date: new Date(),
         UserId: u2.dataValues.id
@@ -74,21 +106,48 @@ class OverclockSequelize extends Sequelize {
         FileExtension: "jpg", 
         UserId: u1.dataValues.id,
         Date: new Date(),
+        isDraft: false,
       }
     );
     const m2 = Media.build(
+      {
+        Title: "photo2",
+        FilePath : "media/photos/photo1",
+        FileExtension: "png", 
+        UserId: u1.dataValues.id,
+        Date: new Date(),
+        isDraft: false,
+      }
+    );
+    const m3 = Media.build(
       {
         Title: "video1",
         FilePath : "media/videos/video1",
         FileExtension: "mp4", 
         UserId: u1.dataValues.id,
         Date: new Date(),
+        isDraft: false,
+      }
+    );
+    const m4 = Media.build(
+      {
+        Title: "video2",
+        FilePath : "media/videos/video1",
+        FileExtension: "mp4", 
+        UserId: u1.dataValues.id,
+        Date: new Date(),
+        isDraft: false,
       }
     );
     await m1.save();
     await m2.save();
+    await m3.save();
+    await m4.save();
     await p1.save();
     await p2.save();
+    await p3.save();
+    await p4.save();
+    await p5.save();
     await (p1 as any).addTags(tag1);
     await (p2 as any).addTags(tag2);
 
@@ -154,6 +213,7 @@ class OverclockSequelize extends Sequelize {
   }
   async GetMostRecentPosts() {
     let posts = await Post.findAll({
+      where: {isDraft: false},
       order : [['Date', 'DESC']],
       limit: 5,
       attributes: ['id',
@@ -183,6 +243,7 @@ class OverclockSequelize extends Sequelize {
   }
   async GetMostRecentMedia() {
     let media = await Media.findAll({
+      where: {isDraft: false},
       include: {
         model: User,
         attributes: ['id',
@@ -228,43 +289,54 @@ class OverclockSequelize extends Sequelize {
     });
     return c;
   }
-  async GetMediaThatContains(word : string) {
+  async GetMediaThatContains(word : string, fileExtension?: string) {
+    const whereClause: any = {};
+
+    if (word && word.trim() !== "") {
+      whereClause.Title = {
+        [Op.substring]: word
+      };
+    }
+    if (fileExtension && fileExtension.trim() !== "") {
+      whereClause.FileExtension = fileExtension; // Matches 'jpg', 'mp4', etc.
+    }
+
     let media = await Media.findAll({
-      where : {
-        Title : {
-          [Op.substring] : word
-        }
-      },
+      where: whereClause,
       include: {
         model: User,
-        attributes: ['id',
-          'FirstName',
-          'LastName',
-          'Email'
-        ]
+        attributes: ['id', 'FirstName', 'LastName', 'Email']
       }
     });
     return media;
   }
-  async GetPostThatContains(word : string) {
-    let p = await Post.findAll({
-      where : {
-        Title : {
-          [Op.substring] : word
-        }
+  async GetPostThatContains(word : string, tagId?: number) {
+    const whereClause: any = {};
+
+    if (word && word.trim() !== "") {
+      whereClause.Title = {
+        [Op.substring]: word
+      };
+    }
+    const includeOptions: any[] = [
+      {
+        model: User,
+        attributes: ['id', 'FirstName', 'LastName', 'Email']
       },
-      include: [
-        {
-          model: User,
-          attributes: ['id',
-            'FirstName',
-            'LastName',
-            'Email'
-          ]
-        },
-        {model: Tag },
-        {model: Comment}
-    ],
+      {
+        model: Tag,
+        where: tagId ? { id: tagId } : undefined, 
+        required: tagId ? true : false
+      },
+      {
+        model: Comment,
+        include: [{ model: User, attributes: ['id', 'FirstName', 'LastName'] }]
+      }
+    ];
+
+    let p = await Post.findAll({
+      where: whereClause,
+      include: includeOptions,
     });
     return p;
   }
@@ -290,11 +362,12 @@ class OverclockSequelize extends Sequelize {
     });
     return p.toJSON();
   }
-  async PostMedia(title : string, filePath : string, fileExtension : string){
+  async PostMedia(title : string, filePath : string, fileExtension : string, isDraft : boolean){
         const m = await Media.create({
             Title : title,
             FilePath : filePath,
-            fileExtension : fileExtension
+            FileExtension : fileExtension,
+            isDraft: isDraft
         });
         return m.toJSON();
   }
@@ -355,8 +428,11 @@ class OverclockSequelize extends Sequelize {
 
         if(hashPass === u.PasswordHash){
             //logged in
-            const result = await this.GetUserById(u.id);
-            return result;
+            const user = await this.GetUserById(u.id);
+            const token = jwt.sign({ userId: u.id }, SECRET_KEY, {
+              expiresIn: '1m'
+            }); 
+            return user;
         }else{
             //not logged in
             return undefined;
@@ -448,6 +524,52 @@ class OverclockSequelize extends Sequelize {
     return mp.toJSON();
   }
 
+  async GetMediaDrafts(userId: number) {
+    let mediaDrafts = await Media.findAll({
+      where: {
+        isDraft: true,
+        UserId: userId
+      },
+      include: {
+        model: User,
+        attributes: ['id',
+          'FirstName',
+          'LastName',
+          'Email',
+        ]
+      }
+    });
+    return mediaDrafts;
+  }
+
+  async GetDraftPosts(userId: number) {
+    let posts = await Post.findAll({
+      where: {
+        isDraft: true,
+        UserId: userId
+      },
+      order : [['Date', 'DESC']],
+      limit: 5,
+      attributes: ['id',
+          'Title',
+          'Body',
+          'isDraft',
+          'Date',
+        ],
+      include: [{
+        model: User,
+        attributes: ['id',
+          'FirstName',
+          'LastName',
+          'Email'
+        ]
+      },
+      { model: Tag},
+      { model : Comment}],
+    });
+    return posts;
+  }
+
 
   constructor(config: OverclockSequelizeConfig) {
     super(config.database, config.username, config.password, config.config);
@@ -503,7 +625,7 @@ You can also just manually create the DB in SSMS and make the owner your user! o
 
 export const sequelize = new OverclockSequelize(
   {
-    database: "OverclockMediaCMS", username: "rory", password: "Password123!", 
+    database: "OverclockMediaCMS", username: "Sirawit", password: "1234", 
     config: ProductionConfig
   });
 
@@ -574,6 +696,11 @@ const Media = sequelize.define(
     Date: {
       type: DataTypes.DATE,
       allowNull: false,
+    },
+    isDraft: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     }
   },
   {
@@ -588,7 +715,7 @@ const Post = sequelize.define(
       allowNull: false,
     },
     Body: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     isDraft: {
