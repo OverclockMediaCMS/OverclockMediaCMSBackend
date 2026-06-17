@@ -2,6 +2,9 @@ import { Sequelize, DataTypes, Op } from 'sequelize';
 import SQLite from 'sqlite3';
 import crypto from 'node:crypto'
 import jwt from 'jsonwebtoken'
+
+const SECRET_KEY = "sup3rs3cr3tk3y";
+
 class OverclockSequelize extends Sequelize {
   async tryConnect() {
     try {
@@ -17,8 +20,8 @@ class OverclockSequelize extends Sequelize {
   }
   //calling this will seed the DB with some dummy data
   async seedDummyData() {
-    await this.sync({force:true})
-    //await this.sync();
+    //await this.sync({force:true})
+    await this.sync();
     const u1 = User.build(
       {
         FirstName: 'u1',
@@ -423,8 +426,11 @@ class OverclockSequelize extends Sequelize {
 
         if(hashPass === u.PasswordHash){
             //logged in
-            const result = await this.GetUserById(u.id);
-            return result;
+            const user = await this.GetUserById(u.id);
+            const token = jwt.sign({ userId: u.id }, SECRET_KEY, {
+              expiresIn: '1m'
+            }); 
+            return {user, token};
         }else{
             //not logged in
             return undefined;
