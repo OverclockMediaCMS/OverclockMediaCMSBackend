@@ -207,33 +207,32 @@ class OverclockSequelize extends Sequelize {
         ]
       },
     {model: Comment, include: [{model: User, attributes: ['id', 'FirstName', 'LastName']}]},
-    {model: Tag}]
+    {model: Tag},
+    {model: Media, attributes: ['id', 'Title', 'FilePath', 'FileExtension']}
+  ]
     });
     return post;
   }
   async GetMostRecentPosts() {
     let posts = await Post.findAll({
-      where: {isDraft: false},
-      order : [['Date', 'DESC']],
-      limit: 5,
-      attributes: ['id',
-          'Title',
-          'Body',
-          'isDraft',
-          'Date',
-        ],
-      include: [{
+    where: { isDraft: false },
+    order: [['Date', 'DESC']],
+    include: [
+      {
         model: User,
-        attributes: ['id',
-          'FirstName',
-          'LastName',
-          'Email'
-        ]
+        attributes: ['id', 'FirstName', 'LastName', 'Email']
       },
-      { model: Tag},
-      { model : Comment}],
-    });
-    return posts;
+      { model: Tag },
+      { model: Comment },
+      { 
+        model: Media, // Include media models
+        attributes: ['id'] 
+      }
+    ],
+  });
+
+  // Filter out posts that contain media attachments
+  return posts.filter((post: any) => !post.Media || post.Media.length === 0).slice(0, 5);
   }
   async GetMediaById(ID: number) {
     let media = await Media.findOne({
@@ -362,12 +361,14 @@ class OverclockSequelize extends Sequelize {
     });
     return p.toJSON();
   }
-  async PostMedia(title : string, filePath : string, fileExtension : string, isDraft : boolean){
+  async PostMedia(title : string, filePath : string, fileExtension : string, isDraft : boolean, userId : number){
         const m = await Media.create({
             Title : title,
             FilePath : filePath,
             FileExtension : fileExtension,
-            isDraft: isDraft
+            isDraft: isDraft,
+            Date: new Date(),
+            UserId: userId
         });
         return m.toJSON();
   }
