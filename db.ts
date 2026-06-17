@@ -1,7 +1,8 @@
 import { Sequelize, DataTypes, Op } from 'sequelize';
 import SQLite from 'sqlite3';
 import crypto from 'node:crypto'
-import jwt from 'jsonwebtoken'
+
+
 class OverclockSequelize extends Sequelize {
   async tryConnect() {
     try {
@@ -17,6 +18,8 @@ class OverclockSequelize extends Sequelize {
   }
   //calling this will seed the DB with some dummy data
   async seedDummyData() {
+    if(User.name.length > 0) return; //comment this line to populate db
+
     await this.sync({force:true})
     //await this.sync();
     const u1 = User.build(
@@ -51,8 +54,8 @@ class OverclockSequelize extends Sequelize {
     await tag1.save();
     const p1 = Post.build(
       {
-        Title: "post 1",
-        Body: "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+        Title: "A Guide to Urban Gardening",
+        Body: `## Getting Started\n### Choosing Your Space\nWhether you have a balcony, rooftop, or small backyard, almost any space can be transformed into a productive garden. Start by assessing how much sunlight your space receives throughout the day.\n### Essential Tools\nYou don't need much to get started. A trowel, watering can, and some basic pots will get you a long way. Invest in quality soil before anything else.\n## Choosing What to Grow\n### Vegetables\nTomatoes, lettuce, and herbs are the best starting points for urban gardeners. They grow quickly, don't need much space, and are satisfying to harvest.\n### Herbs\nBasil, mint, and chives are nearly impossible to kill and incredibly useful in the kitchen. Keep them near a sunny window if space is tight.\n### Flowers\nMarigolds and nasturtiums are great companions for vegetables, deterring pests naturally while adding colour to your garden.\n## Soil and Nutrition\n### Picking the Right Soil\nNever use soil straight from the ground in containers — it compacts too easily. Use a quality potting mix designed for container gardening.\n### Composting\nEven in a small apartment you can maintain a worm farm or bokashi bin to turn food scraps into rich compost for your plants.\n## Watering and Maintenance\n### How Often to Water\nMost container plants need watering more frequently than garden beds since they dry out faster. Check the top inch of soil — if it's dry, water it.\n### Dealing with Pests\nAphids and fungus gnats are the most common urban garden pests. A diluted neem oil spray handles both without harsh chemicals.\n## Harvesting\n### Knowing When to Pick\nHarvesting at the right time encourages more growth. For most leafy greens, pick outer leaves first and let the centre keep producing.\n### Storing Your Produce\nFresh herbs last longest when stored upright in a glass of water in the fridge, loosely covered with a plastic bag.`,
         isDraft: false,
         Date: new Date(),
         UserId: u1.dataValues.id
@@ -101,6 +104,7 @@ class OverclockSequelize extends Sequelize {
         FileExtension: "jpg", 
         UserId: u1.dataValues.id,
         Date: new Date(),
+        isDraft: false,
       }
     );
     const m2 = Media.build(
@@ -110,6 +114,7 @@ class OverclockSequelize extends Sequelize {
         FileExtension: "png", 
         UserId: u1.dataValues.id,
         Date: new Date(),
+        isDraft: false,
       }
     );
     const m3 = Media.build(
@@ -119,6 +124,7 @@ class OverclockSequelize extends Sequelize {
         FileExtension: "mp4", 
         UserId: u1.dataValues.id,
         Date: new Date(),
+        isDraft: false,
       }
     );
     const m4 = Media.build(
@@ -128,6 +134,7 @@ class OverclockSequelize extends Sequelize {
         FileExtension: "mp4", 
         UserId: u1.dataValues.id,
         Date: new Date(),
+        isDraft: false,
       }
     );
     await m1.save();
@@ -198,32 +205,32 @@ class OverclockSequelize extends Sequelize {
         ]
       },
     {model: Comment, include: [{model: User, attributes: ['id', 'FirstName', 'LastName']}]},
-    {model: Tag}]
+    {model: Tag},
+    {model: Media, attributes: ['id', 'Title', 'FilePath', 'FileExtension']}
+  ]
     });
     return post;
   }
   async GetMostRecentPosts() {
     let posts = await Post.findAll({
-      order : [['Date', 'DESC']],
-      limit: 5,
-      attributes: ['id',
-          'Title',
-          'Body',
-          'isDraft',
-          'Date',
-        ],
-      include: [{
+    where: { isDraft: false },
+    order: [['Date', 'DESC']],
+    include: [
+      {
         model: User,
-        attributes: ['id',
-          'FirstName',
-          'LastName',
-          'Email'
-        ]
+        attributes: ['id', 'FirstName', 'LastName', 'Email']
       },
-      { model: Tag},
-      { model : Comment}],
-    });
-    return posts;
+      { model: Tag },
+      { model: Comment },
+      { 
+        model: Media, // Include media models
+        attributes: ['id'] 
+      }
+    ],
+  });
+
+  // Filter out posts that contain media attachments
+  return posts.filter((post: any) => !post.Media || post.Media.length === 0).slice(0, 5);
   }
   async GetMediaById(ID: number) {
     let media = await Media.findOne({
@@ -233,6 +240,7 @@ class OverclockSequelize extends Sequelize {
   }
   async GetMostRecentMedia() {
     let media = await Media.findAll({
+      where: {isDraft: false},
       include: {
         model: User,
         attributes: ['id',
@@ -349,13 +357,17 @@ class OverclockSequelize extends Sequelize {
         Date : new (Date),
         UserId : userId,
     });
+    console.log("PostPost");
     return p.toJSON();
   }
-  async PostMedia(title : string, filePath : string, fileExtension : string){
+  async PostMedia(title : string, filePath : string, fileExtension : string, isDraft : boolean, userId : number){
         const m = await Media.create({
             Title : title,
             FilePath : filePath,
-            fileExtension : fileExtension
+            FileExtension : fileExtension,
+            isDraft: isDraft,
+            Date: new Date(),
+            UserId: userId
         });
         return m.toJSON();
   }
@@ -416,8 +428,8 @@ class OverclockSequelize extends Sequelize {
 
         if(hashPass === u.PasswordHash){
             //logged in
-            const result = await this.GetUserById(u.id);
-            return result;
+            const user = await this.GetUserById(u.id);
+            return user;
         }else{
             //not logged in
             return undefined;
@@ -447,7 +459,7 @@ class OverclockSequelize extends Sequelize {
                 Salt: uSalt
             }
         );
-        newUser.save();
+        await newUser.save();
         return true;
     }
 
@@ -507,6 +519,52 @@ class OverclockSequelize extends Sequelize {
     );
     await mp.save();
     return mp.toJSON();
+  }
+
+  async GetMediaDrafts(userId: number) {
+    let mediaDrafts = await Media.findAll({
+      where: {
+        isDraft: true,
+        UserId: userId
+      },
+      include: {
+        model: User,
+        attributes: ['id',
+          'FirstName',
+          'LastName',
+          'Email',
+        ]
+      }
+    });
+    return mediaDrafts;
+  }
+
+  async GetDraftPosts(userId: number) {
+    let posts = await Post.findAll({
+      where: {
+        isDraft: true,
+        UserId: userId
+      },
+      order : [['Date', 'DESC']],
+      limit: 5,
+      attributes: ['id',
+          'Title',
+          'Body',
+          'isDraft',
+          'Date',
+        ],
+      include: [{
+        model: User,
+        attributes: ['id',
+          'FirstName',
+          'LastName',
+          'Email'
+        ]
+      },
+      { model: Tag},
+      { model : Comment}],
+    });
+    return posts;
   }
 
 
@@ -578,7 +636,6 @@ const User = sequelize.define(
     PasswordHash: {
       type: DataTypes.STRING,
     },
-
     FirstName: {
       type: DataTypes.STRING,
     },
@@ -635,6 +692,11 @@ const Media = sequelize.define(
     Date: {
       type: DataTypes.DATE,
       allowNull: false,
+    },
+    isDraft: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     }
   },
   {
@@ -649,7 +711,7 @@ const Post = sequelize.define(
       allowNull: false,
     },
     Body: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     isDraft: {
