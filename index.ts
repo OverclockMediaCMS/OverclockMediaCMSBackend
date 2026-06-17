@@ -14,6 +14,8 @@ app.use(cors());
 app.use(express.json());
 app.use(helmet());
 
+app.use('/media-files', express.static('uploads'));
+
 
 export const IndexRequestHandler = (req: express.Request, res: express.Response) => {
   console.log(req, res);
@@ -25,14 +27,14 @@ export const GetUsersHandler = async (req: express.Request, res: express.Respons
   const result = await sequelize.GetAllUsers();
   if (!result) {
     const response = {
-      status : 404,
-      response : "Error - Users Not Found"
+      status: 404,
+      response: "Error - Users Not Found"
     }
     res.status(404).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
@@ -43,14 +45,14 @@ export const GetUserByIdHandler = async (req: express.Request, res: express.Resp
   const result = await sequelize.GetUserById(parseInt(id as string));
   if (!result) {
     const response = {
-      status : 404,
-      response : "Error - User Not Found"
+      status: 404,
+      response: "Error - User Not Found"
     }
     res.status(404).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
@@ -72,14 +74,14 @@ export const GetTagsHandler = async (req: express.Request, res: express.Response
   let result = await sequelize.GetAllTags();
   if (!result) {
     const response = {
-      status : 404,
-      response : "Error - Tags Not Found"
+      status: 404,
+      response: "Error - Tags Not Found"
     }
     res.status(404).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
@@ -91,14 +93,14 @@ export const PostUserHandler = async (req: express.Request, res: express.Respons
   const result = await sequelize.PostUser(FirstName, LastName, Email, PasswordHash, InternalPhone, MobilePhone, Role);
   if (!result) {
     const response = {
-      status : 500,
-      response : "Internal Error - Cannot Create User"
+      status: 500,
+      response: "Internal Error - Cannot Create User"
     }
     res.status(500).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
@@ -109,14 +111,14 @@ export const PostCommentHandler = async (req: express.Request, res: express.Resp
   const result = await sequelize.PostComment(Description, UserId, PostId);
   if (!result) {
     const response = {
-      status : 500,
-      response : "Internal Error - Cannot Create Post"
+      status: 500,
+      response: "Internal Error - Cannot Create Post"
     }
     res.status(500).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
@@ -134,19 +136,19 @@ export const GetCommentsByPostIdHandler = async (req: express.Request, res: expr
 };
 
 export const RegisterUserHandler = async (req: express.Request, res: express.Response) => {
-  const {Email, FirstName, LastName, Password} = req.body;
+  const { Email, FirstName, LastName, Password } = req.body;
   const isSuccess = await sequelize.RegisterUser(Email, FirstName, LastName, Password);
-  if (!isSuccess){
-    return res.status(409).json({error : "This email address is already registered."});
+  if (!isSuccess) {
+    return res.status(409).json({ error: "This email address is already registered." });
   }
   res.status(200).end();
 }
 
 export const LoginUserHandler = async (req: express.Request, res: express.Response) => {
-  const {Email,Password} = req.body;
+  const { Email, Password } = req.body;
   const user = await sequelize.LoginUser(Email, Password);
-  if (user == undefined){
-    return res.status(401).json({error: "Invaild Email or Password"});
+  if (user == undefined) {
+    return res.status(401).json({ error: "Invaild Email or Password" });
   } else {
     res.status(200).json(user);
   }
@@ -158,14 +160,14 @@ export const DeleteUserByIdHandler = async (req: express.Request, res: express.R
   const result = await sequelize.DeleteUserById(parseInt(id as string));
   if (!result) {
     const response = {
-      status : 500,
-      response : "Internal Error - Cannot Delete User"
+      status: 500,
+      response: "Internal Error - Cannot Delete User"
     }
     res.status(500).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
@@ -190,148 +192,148 @@ export const UpdateUserByIdHandler = async (req: express.Request, res: express.R
   } catch (error) {
     console.error(error);
     res.status(500).send("Server Error");
-  } 
+  }
 };
 
 export const CreatePostHandler = async (req: express.Request, res: express.Response) => {
-  const { Title, Body, isDraft, Date, UserId} = req.body;
+  const { Title, Body, isDraft, Date, UserId } = req.body;
   const result = await sequelize.PostPost(Title, Body, isDraft, UserId);
   if (!result) {
     const response = {
-      status : 500,
-      response : "Cannot Create Post - Internal Error"
+      status: 500,
+      response: "Cannot Create Post - Internal Error"
     }
     res.status(500).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
 }
 
 export const DeletePostHandler = async (req: express.Request, res: express.Response) => {
-  const {id} = req.params;
+  const { id } = req.params;
   const result = await sequelize.DeletePostById(parseInt(id as string));
   if (!result) {
     const response = {
-      status : 500,
-      response : "Cannot Delete Post - Internal Error"
+      status: 500,
+      response: "Cannot Delete Post - Internal Error"
     }
     res.status(500).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
 }
 
 export const PostMediaHandler = async (req: express.Request, res: express.Response) => {
-  const {Title, FilePath, FileExtension, isDraft} = req.body;
+  const { Title, FilePath, FileExtension, isDraft } = req.body;
   const result = await sequelize.PostMedia(Title, FilePath, FileExtension, isDraft ?? false);
   if (!result) {
     const response = {
-      status : 500,
-      response : "Cannot Create Media - Internal Error"
+      status: 500,
+      response: "Cannot Create Media - Internal Error"
     }
     res.status(500).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
 }
 
 export const DeleteMediaHandler = async (req: express.Request, res: express.Response) => {
-  const {id} = req.params;
+  const { id } = req.params;
   const result = await sequelize.DeleteMediaById(parseInt(id as string));
   if (!result) {
     const response = {
-      status : 500,
-      response : "Cannot Delete Media - Internal Error"
+      status: 500,
+      response: "Cannot Delete Media - Internal Error"
     }
     res.status(500).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
 }
 
 export const PostTagHandler = async (req: express.Request, res: express.Response) => {
-  const {Title} = req.body;
+  const { Title } = req.body;
   const result = await sequelize.PostTag(Title);
   if (!result) {
     const response = {
-      status : 500,
-      response : "Cannot Create Tag - Internal Error"
+      status: 500,
+      response: "Cannot Create Tag - Internal Error"
     }
     res.status(500).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
 }
 
 export const DeleteTagHandler = async (req: express.Request, res: express.Response) => {
-  const {id} = req.params;
+  const { id } = req.params;
   const result = await sequelize.DeleteTagById(parseInt(id as string));
   if (!result) {
     const response = {
-      status : 500,
-      response : "Cannot Delete Tag - Internal Error"
+      status: 500,
+      response: "Cannot Delete Tag - Internal Error"
     }
     res.status(500).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
 }
 
 export const DeleteCommentHandler = async (req: express.Request, res: express.Response) => {
-  const {id} = req.params;
+  const { id } = req.params;
   const result = await sequelize.DeleteCommentById(parseInt(id as string));
   if (!result) {
     const response = {
-      status : 500,
-      response : "Cannot Delete Comment - Internal Error"
+      status: 500,
+      response: "Cannot Delete Comment - Internal Error"
     }
     res.status(500).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
 }
 
 export const PostMediaPostHandler = async (req: express.Request, res: express.Response) => {
-  const {MediaId , PostId} = req.body;
+  const { MediaId, PostId } = req.body;
   const result = await sequelize.PostMediaPost(MediaId, PostId);
   if (!result) {
     const response = {
-      status : 500,
-      response : "Cannot Create MediaPost - Internal Error"
+      status: 500,
+      response: "Cannot Create MediaPost - Internal Error"
     }
     res.status(500).json(response);
   } else {
     const response = {
-      status : 200,
-      response : result
+      status: 200,
+      response: result
     }
     res.status(200).json(response);
   }
@@ -341,9 +343,9 @@ export const GetPostsHandler = async (req: express.Request, res: express.Respons
   let result;
   const { id, contains, tagId } = req.query;
 
-  if(id != undefined){
+  if (id != undefined) {
     result = await sequelize.GetPostById(parseInt(id as string));
-  } else if(contains != undefined || tagId != undefined){
+  } else if (contains != undefined || tagId != undefined) {
     const parsedTagId = tagId ? parseInt(tagId as string) : undefined;
     result = await sequelize.GetPostThatContains((contains as string) || "", parsedTagId);
   } else {
@@ -361,30 +363,30 @@ export const GetMediaHandler = async (req: express.Request, res: express.Respons
   } else if (contains != undefined || fileExtension != undefined) {
     // Pass both parameters directly to your clean database class method
     result = await sequelize.GetMediaThatContains(
-      (contains as string) || "", 
+      (contains as string) || "",
       fileExtension as string
     );
   } else {
     result = await sequelize.GetMostRecentMedia();
   }
-  
+
   res.json(result);
 };
 
 export const GetDraftsHandler = async (req: express.Request, res: express.Response) => {
   const { id, userId } = req.query;
 
-  if(id != undefined){
+  if (id != undefined) {
     const result = await sequelize.GetPostById(parseInt(id as string));
-    return  res.json(result);
+    return res.json(result);
   }
 
-  if(!userId){
+  if (!userId) {
     return res.status(400).json();
   }
 
   const parsedUserId = parseInt(userId as string);
-  
+
   const [postDrafts, mediaDrafts] = await Promise.all([
     sequelize.GetDraftPosts(parsedUserId),
     sequelize.GetMediaDrafts(parsedUserId)
@@ -392,12 +394,12 @@ export const GetDraftsHandler = async (req: express.Request, res: express.Respon
 
   const formattedPosts = postDrafts.map((p: any) => {
     const post = typeof p.toJSON === 'function' ? p.toJSON() : p;
-    return {...post, type: 'post'};
+    return { ...post, type: 'post' };
   });
 
   const formattedMedia = mediaDrafts.map((m: any) => {
     const media = typeof m.toJSON === 'function' ? m.toJSON() : m;
-    return {...media, type: 'media'};
+    return { ...media, type: 'media' };
   });
 
   const combined = [...formattedPosts, ...formattedMedia].sort(
@@ -406,6 +408,37 @@ export const GetDraftsHandler = async (req: express.Request, res: express.Respon
 
   res.json(combined);
 };
+
+export const DeleteDraftHandler = async (req: express.Request, res: express.Response) => {
+  const { id, type } = req.query;
+
+  if (!id || !type) {
+    return res.status(400);
+  }
+
+  const targetId = parseInt(id as string);
+  let result;
+
+  try {
+    if (type === 'post') {
+      result = await sequelize.DeletePostById(targetId);
+    } else if (type === 'media') {
+      result = await sequelize.DeleteMediaById(targetId);
+    } else {
+      return res.status(400).json({ error: "Invalid type. Must be 'post' or 'media'" });
+    }
+
+    if (!result) {
+      return res.status(404).json({ error: "Draft not found in database" });
+    }
+
+    res.status(200).json({ status: 200, response: result });
+  } catch (error) {
+    console.error("DeleteDraftHandler Error:", error);
+    res.status(500).json({ error: "Cannot Delete Draft" });
+  }
+};
+
 
 
 app.get("/", IndexRequestHandler);
@@ -455,7 +488,10 @@ app.get("/comments/:postid", GetCommentsByPostIdHandler);
 
 app.delete("/comments/:id", DeleteCommentHandler);
 
+// Draft Endpoints
 app.get("/drafts", GetDraftsHandler);
+
+app.delete("/drafts", DeleteDraftHandler);
 
 
 
