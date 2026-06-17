@@ -227,6 +227,7 @@ export const LoginUserHandler = async (req: express.Request, res: express.Respon
     const token = createToken(user.dataValues.id);
     if(token == null)
       return res.status(401).json({ error: "Login valid with server error" });
+    console.log(user + token)
     res.status(200).json({user, token});
   }
 }

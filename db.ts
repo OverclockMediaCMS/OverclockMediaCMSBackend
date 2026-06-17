@@ -18,7 +18,7 @@ class OverclockSequelize extends Sequelize {
   }
   //calling this will seed the DB with some dummy data
   async seedDummyData() {
-    if(User.name.length > 0) return; //comment this line to populate db
+    //if(User.name.length > 0) return; //comment this line to populate db
 
     await this.sync({force:true})
     //await this.sync();
