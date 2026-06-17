@@ -231,43 +231,45 @@ export const CreatePostHandler = async (req: express.Request, res: express.Respo
     const files = (req.files as Express.Multer.File[]) || []; 
     const isDraftBoolean = isDraft === 'true' || isDraft === true;
 
-    // 1. Create the unified parent Post row (this happens for text AND files)
+    // 1. Create the unified parent Post row
     const createdPost = await sequelize.PostPost(Title, Body, isDraftBoolean, Number(UserId));
     
     if (!createdPost) {
       return res.status(500).json({ error: "Could not create post record." });
     }
 
-    // 2. If files are attached, loop through them, save to Media, and tie them together!
+    // 2. If files are attached, group their data into JSON arrays
     if (files.length > 0) {
-      for (const file of files) {
-        const databaseFileName = file.filename;
-        const fileExtension = file.originalname.split('.').pop() || '';
-        
-        // Save file record to Media table
-        const mediaAsset = await sequelize.PostMedia(
-          Title || file.originalname, 
-          databaseFileName, 
-          fileExtension, 
-          isDraftBoolean, 
-          Number(UserId)
-        );
-        
-        // POPULATE THE JUNCTION TABLE: Links MediaId and PostId together safely
-        if (mediaAsset) {
-          await sequelize.PostMediaPost(mediaAsset.id, createdPost.id);
-        }
+      const filePaths: string[] = [];
+      const fileExtensions: string[] = [];
+
+      files.forEach(file => {
+        filePaths.push(file.filename);
+        fileExtensions.push(file.originalname.split('.').pop() || '');
+      });
+      
+      // Save exactly ONE row to your Media table by turning the arrays into strings
+      const mediaAsset = await sequelize.PostMedia(
+        Title || files[0].originalname, 
+        JSON.stringify(filePaths),       // Stores as: '["file1.png","file2.jpg"]'
+        JSON.stringify(fileExtensions),  // Stores as: '["png","jpg"]'
+        isDraftBoolean, 
+        Number(UserId)
+      );
+      
+      // Link them together once in your junction table
+      if (mediaAsset) {
+        await sequelize.PostMediaPost(mediaAsset.id, createdPost.id);
       }
     }
 
-    // Return the post back to the client
     return res.status(200).json({ response: createdPost });
 
   } catch (err: any) {
     console.error("CreatePostHandler Error:", err);
     return res.status(500).json({ error: err.message || "Internal Server Error" });
   }
-}
+};
 
 export const DeletePostHandler = async (req: express.Request, res: express.Response) => {
   const { id } = req.params;
