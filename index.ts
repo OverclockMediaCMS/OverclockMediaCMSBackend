@@ -16,7 +16,6 @@ app.use(helmet());
 
 app.use('/media-files', express.static('uploads'));
 
-
 export const IndexRequestHandler = (req: express.Request, res: express.Response) => {
   console.log(req, res);
   res.send("Hello Overclock Media Backend!");
@@ -196,7 +195,7 @@ export const UpdateUserByIdHandler = async (req: express.Request, res: express.R
 };
 
 export const CreatePostHandler = async (req: express.Request, res: express.Response) => {
-  const { Title, Body, isDraft, Date, UserId } = req.body;
+  const { Title, Body, isDraft, UserId } = req.body;
   const result = await sequelize.PostPost(Title, Body, isDraft, UserId);
   if (!result) {
     const response = {
