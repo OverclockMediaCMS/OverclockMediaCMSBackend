@@ -7,6 +7,31 @@ import jwt from 'jsonwebtoken'
 import 'dotenv/config';
 
 let SECRET_KEY = process.env.SECRET_KEY;
+import path from 'node:path';
+import fs from 'node:fs';
+import multer from 'multer';
+import { error } from 'node:console';
+
+const uploadDir = 'uploads';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+// Configure Multer Disk Storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir); // Saves files into the 'uploads' folder
+  },
+  filename: (req, file, cb) => {
+    // Generates a unique filename using timestamp to avoid overwriting duplicates
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+  }
+});
+
+// Initialize Multer middleware
+const upload = multer({ storage: storage });
 
 //instructions for setting up connection in db.ts
 await sequelize.tryConnect();
@@ -44,7 +69,13 @@ function validateToken(req : express.Request, res : express.Response) : boolean 
   return true;
 }
 
-app.use('/media-files', express.static('uploads'));
+app.use('/media-files', express.static('uploads', {
+  setHeaders: (res) => {
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.set('Access-Control-Allow-Origin', '*'); 
+  }
+}));
+
 
 export const IndexRequestHandler = (req: express.Request, res: express.Response) => {
   console.log(req, res);
@@ -247,22 +278,50 @@ export const UpdateUserByIdHandler = async (req: express.Request, res: express.R
 export const CreatePostHandler = async (req: express.Request, res: express.Response) => {
   if(!validateToken(req, res))
     return;  
-  const { Title, Body, isDraft, Date, UserId } = req.body;
-  const result = await sequelize.PostPost(Title, Body, isDraft, UserId);
-  if (!result) {
-    const response = {
-      status: 500,
-      response: "Cannot Create Post - Internal Error"
+  try {
+    const { Title, Body, isDraft, UserId } = req.body;
+    const files = (req.files as Express.Multer.File[]) || []; 
+    const isDraftBoolean = isDraft === 'true' || isDraft === true;
+
+    // 1. Create the only one parent Post row
+    const createdPost = await sequelize.PostPost(Title, Body, isDraftBoolean, Number(UserId));
+    
+    if (!createdPost) {
+      return res.status(500).json({ error: "Could not create post record." });
     }
-    res.status(500).json(response);
-  } else {
-    const response = {
-      status: 200,
-      response: result
+
+    // 2. If files are attached, group their data into JSON arrays
+    if (files.length > 0) {
+      const filePaths: string[] = [];
+      const fileExtensions: string[] = [];
+
+      files.forEach(file => {
+        filePaths.push(file.filename);
+        fileExtensions.push(file.originalname.split('.').pop() || '');
+      });
+      
+      // Save media as string in one row
+      const mediaAsset = await sequelize.PostMedia(
+        Title || files[0].originalname, 
+        JSON.stringify(filePaths),       // Stores as: '["file1.png","file2.jpg"]'
+        JSON.stringify(fileExtensions),  // Stores as: '["png","jpg"]'
+        isDraftBoolean, 
+        Number(UserId)
+      );
+      
+      // Link post and media that it
+      if (mediaAsset) {
+        await sequelize.PostMediaPost(mediaAsset.id, createdPost.id);
+      }
     }
-    res.status(200).json(response);
+
+    return res.status(200).json({ response: createdPost });
+
+  } catch (err: any) {
+    console.error("CreatePostHandler Error:", err);
+    return res.status(500).json({ error: err.message || "Internal Server Error" });
   }
-}
+};
 
 export const DeletePostHandler = async (req: express.Request, res: express.Response) => {
   if(!validateToken(req, res))
@@ -285,22 +344,69 @@ export const DeletePostHandler = async (req: express.Request, res: express.Respo
 }
 
 export const PostMediaHandler = async (req: express.Request, res: express.Response) => {
+  // try {
+  //   const files = req.files as Express.Multer.File[];
+
+  //   if (!files || files.length === 0) {
+  //     return res.status(400).json({ error: "No files uploaded" });
+  //   }
+
+  //   const { Title, isDraft, UserId } = req.body;
+  //   const numberedUserId = Number(UserId);
+  //   const isDraftBoolean = isDraft === 'true' || isDraft === true;
+  //   const savedAssets = [];
+
+  //   for (const file of files) {
+  //     const filePath = file.path;
+  //     const fileExtension = path.extname(file.originalname).replace('.', '');
+  //     const finalTitle = Title || file.originalname;
+
+  //     const result = await sequelize.PostMedia(finalTitle, filePath, fileExtension, isDraftBoolean, numberedUserId);
+  //     if (result) {
+  //       savedAssets.push(result);
+  //     }
+  //   }
+
+  //   res.status(200).json({ status: 200, response: savedAssets[0] });
+  // } catch (err) {
+  //   console.error("PostMediaHandler Error:", err);
+  //   res.status(500).json({ error: "Server upload error" });
+  // }
   if(!validateToken(req, res))
     return;  
-  const { Title, FilePath, FileExtension, isDraft } = req.body;
-  const result = await sequelize.PostMedia(Title, FilePath, FileExtension, isDraft ?? false);
-  if (!result) {
-    const response = {
-      status: 500,
-      response: "Cannot Create Media - Internal Error"
+  try {
+    const files = (req.files as Express.Multer.File[]) || [];
+
+    if (files.length === 0) {
+      return res.status(400).json({ error: "No files uploaded" });
     }
-    res.status(500).json(response);
-  } else {
-    const response = {
-      status: 200,
-      response: result
-    }
-    res.status(200).json(response);
+
+    const { Title, isDraft, UserId } = req.body;
+    const numberedUserId = Number(UserId);
+    const isDraftBoolean = isDraft === 'true' || isDraft === true;
+
+    // APPROACH B COMPATIBLE: Group all files into arrays just like CreatePostHandler does
+    const filePaths: string[] = [];
+    const fileExtensions: string[] = [];
+
+    files.forEach(file => {
+      filePaths.push(file.filename);
+      fileExtensions.push(file.originalname.split('.').pop() || '');
+    });
+
+    // Save exactly ONE row in your Media table with JSON arrays
+    const result = await sequelize.PostMedia(
+      Title || files[0].originalname, 
+      JSON.stringify(filePaths),       // Stores as: '["file1.png","file2.jpg"]'
+      JSON.stringify(fileExtensions),  // Stores as: '["png","jpg"]'
+      isDraftBoolean, 
+      numberedUserId
+    );
+
+    res.status(200).json({ status: 200, response: result });
+  } catch (err) {
+    console.error("PostMediaHandler Error:", err);
+    res.status(500).json({ error: "Server upload error" });
   }
 }
 
@@ -422,6 +528,8 @@ export const GetPostsHandler = async (req: express.Request, res: express.Respons
 };
 
 export const GetMediaHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   let result;
   const { id, contains, fileExtension } = req.query;
 
@@ -441,6 +549,8 @@ export const GetMediaHandler = async (req: express.Request, res: express.Respons
 };
 
 export const GetDraftsHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;  
   const { id, userId } = req.query;
 
   if (id != undefined) {
@@ -477,6 +587,8 @@ export const GetDraftsHandler = async (req: express.Request, res: express.Respon
 };
 
 export const DeleteDraftHandler = async (req: express.Request, res: express.Response) => {
+  if(!validateToken(req, res))
+    return;    
   const { id, type } = req.query;
 
   if (!id || !type) {
@@ -530,16 +642,18 @@ app.delete("/users/:id", DeleteUserByIdHandler);
 // Post Endpoints
 app.get("/posts", GetPostsHandler);
 
-app.post("/posts/create", CreatePostHandler);
+app.post("/posts/create", upload.array('media', 10), CreatePostHandler);
 
 app.delete("/posts/:id", DeletePostHandler);
 
 // Media Endpoints
 app.get("/media", GetMediaHandler);
 
-app.post("/media/create", PostMediaHandler);
+app.post("/media/create", upload.array('media', 10), PostMediaHandler);
 
 app.delete("/media/:id", DeleteMediaHandler);
+
+
 
 // Tag Endpoints
 app.get("/tags", GetTagsHandler);
