@@ -231,7 +231,7 @@ export const CreatePostHandler = async (req: express.Request, res: express.Respo
     const files = (req.files as Express.Multer.File[]) || []; 
     const isDraftBoolean = isDraft === 'true' || isDraft === true;
 
-    // 1. Create the unified parent Post row
+    // 1. Create the only one parent Post row
     const createdPost = await sequelize.PostPost(Title, Body, isDraftBoolean, Number(UserId));
     
     if (!createdPost) {
@@ -248,7 +248,7 @@ export const CreatePostHandler = async (req: express.Request, res: express.Respo
         fileExtensions.push(file.originalname.split('.').pop() || '');
       });
       
-      // Save exactly ONE row to your Media table by turning the arrays into strings
+      // Save media as string in one row
       const mediaAsset = await sequelize.PostMedia(
         Title || files[0].originalname, 
         JSON.stringify(filePaths),       // Stores as: '["file1.png","file2.jpg"]'
@@ -257,7 +257,7 @@ export const CreatePostHandler = async (req: express.Request, res: express.Respo
         Number(UserId)
       );
       
-      // Link them together once in your junction table
+      // Link post and media that it
       if (mediaAsset) {
         await sequelize.PostMediaPost(mediaAsset.id, createdPost.id);
       }
@@ -290,30 +290,64 @@ export const DeletePostHandler = async (req: express.Request, res: express.Respo
 }
 
 export const PostMediaHandler = async (req: express.Request, res: express.Response) => {
-  try {
-    const files = req.files as Express.Multer.File[];
+  // try {
+  //   const files = req.files as Express.Multer.File[];
 
-    if (!files || files.length === 0) {
+  //   if (!files || files.length === 0) {
+  //     return res.status(400).json({ error: "No files uploaded" });
+  //   }
+
+  //   const { Title, isDraft, UserId } = req.body;
+  //   const numberedUserId = Number(UserId);
+  //   const isDraftBoolean = isDraft === 'true' || isDraft === true;
+  //   const savedAssets = [];
+
+  //   for (const file of files) {
+  //     const filePath = file.path;
+  //     const fileExtension = path.extname(file.originalname).replace('.', '');
+  //     const finalTitle = Title || file.originalname;
+
+  //     const result = await sequelize.PostMedia(finalTitle, filePath, fileExtension, isDraftBoolean, numberedUserId);
+  //     if (result) {
+  //       savedAssets.push(result);
+  //     }
+  //   }
+
+  //   res.status(200).json({ status: 200, response: savedAssets[0] });
+  // } catch (err) {
+  //   console.error("PostMediaHandler Error:", err);
+  //   res.status(500).json({ error: "Server upload error" });
+  // }
+  try {
+    const files = (req.files as Express.Multer.File[]) || [];
+
+    if (files.length === 0) {
       return res.status(400).json({ error: "No files uploaded" });
     }
 
     const { Title, isDraft, UserId } = req.body;
     const numberedUserId = Number(UserId);
     const isDraftBoolean = isDraft === 'true' || isDraft === true;
-    const savedAssets = [];
 
-    for (const file of files) {
-      const filePath = file.path;
-      const fileExtension = path.extname(file.originalname).replace('.', '');
-      const finalTitle = Title || file.originalname;
+    // APPROACH B COMPATIBLE: Group all files into arrays just like CreatePostHandler does
+    const filePaths: string[] = [];
+    const fileExtensions: string[] = [];
 
-      const result = await sequelize.PostMedia(finalTitle, filePath, fileExtension, isDraftBoolean, numberedUserId);
-      if (result) {
-        savedAssets.push(result);
-      }
-    }
+    files.forEach(file => {
+      filePaths.push(file.filename);
+      fileExtensions.push(file.originalname.split('.').pop() || '');
+    });
 
-    res.status(200).json({ status: 200, response: savedAssets[0] });
+    // Save exactly ONE row in your Media table with JSON arrays
+    const result = await sequelize.PostMedia(
+      Title || files[0].originalname, 
+      JSON.stringify(filePaths),       // Stores as: '["file1.png","file2.jpg"]'
+      JSON.stringify(fileExtensions),  // Stores as: '["png","jpg"]'
+      isDraftBoolean, 
+      numberedUserId
+    );
+
+    res.status(200).json({ status: 200, response: result });
   } catch (err) {
     console.error("PostMediaHandler Error:", err);
     res.status(500).json({ error: "Server upload error" });
