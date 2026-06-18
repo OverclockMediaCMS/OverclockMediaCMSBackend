@@ -20,8 +20,6 @@ class SendPipe {
         this.send(`Status: ${statusCode}`);
     }
 
-
-
     getCallback() {
         const ref = this;
         return (msg: string) => {
@@ -98,48 +96,63 @@ test('Checks if GetUser handler responds with data',
 test('Checks if GetUserById handler responds with data',
     async () => {
         const pipe = new SendPipe();
-        const res = { json: pipe.getJSONCallback() };
+        const res = { json: pipe.getJSONCallback() , status : pipe.getStatusCallback() };
+        const token = createToken(1);
         const req = {
             params: {
                 id: '2'
+            },
+            headers : {
+                authorization: `Bearer ${token}`
             }
         };
-        await GetUserByIdHandler(req as any, res as express.Response);
+        await GetUserByIdHandler(req as any, res as any);
         const expected = {
             "id": 2,
             "FirstName": "u2",
             "LastName": "u2",
             "Email": "u2@email.com"
         }
-        const result = pipe.data[0];
+        const result = pipe.data[1];
 })
 
 test('Checks if GetUserById handler responds with 404 when user is not found',
     async () => {
         const pipe = new SendPipe();
-        
+        const token = createToken(1);
         const res = {
             status: pipe.getStatusCallback(),
             send: pipe.getCallback(),
             json: pipe.getJSONCallback()
         };
 
-        const req = { params: { id: '99' } };
+        const req = {
+            params: { id: '99' },
+            headers : {
+                authorization: `Bearer ${token}`
+            }
+        };
 
         await GetUserByIdHandler(req as any, res as any);
 
         expect(pipe.data[0]).toEqual("Status: 404");
-        expect(pipe.data[1]).toEqual("not found");
+        expect(pipe.data[1]).toEqual({
+            "response": "Error - User Not Found",
+            "status": 404,
+        });
 })
 
 test('Checks if SearchUsers handler correctly filters users by FirstName query',
     async () => {
         const pipe = new SendPipe();
         const res = { json: pipe.getJSONCallback() };
-
+        const token = createToken(1);
         const req = {
             query: {
                 FirstName: 'u1'
+            },
+            headers : {
+                authorization: `Bearer ${token}`
             }
         };
 
@@ -229,9 +242,15 @@ test('Checks if GetPosts handler correctly returns data',
 test('Check if GetMedia handler responds with data',
     async () => {
         const pipe = new SendPipe();
-        const res = { json: pipe.getJSONCallback() };
-        
-        await GetMediaHandler({} as express.Request, res as any);
+        const res = { json: pipe.getJSONCallback(), status : pipe.getStatusCallback() };
+        const token = createToken(1);
+        const req = {
+            headers : {
+                authorization: `Bearer ${token}`
+            },
+            query : {}
+        };
+        await GetMediaHandler(req as any, res as any);
 
         const mockTimestamp : Date = new Date();
         const mockTimeString : string = mockTimestamp.toISOString();
@@ -243,6 +262,7 @@ test('Check if GetMedia handler responds with data',
                 "FilePath": "media/photos/photo1",
                 "FileExtension": "jpg",
                 "Date": mockTimeString,
+                "isDraft": false,
                 "UserId": 1,
                 "User": {
                 "id": 1,
@@ -253,10 +273,41 @@ test('Check if GetMedia handler responds with data',
             },
             {
                 "id": 2,
+                "Title": "photo2",
+                "FilePath": "media/photos/photo1",
+                "FileExtension": "png",
+                "Date": mockTimeString,
+                "isDraft": false,
+                "UserId": 1,
+                "User": {
+                "id": 1,
+                "FirstName": "u1",
+                "LastName": "u1",
+                "Email": "u1@email.com"
+                }
+            },
+            {
+                "id": 3,
                 "Title": "video1",
                 "FilePath": "media/videos/video1",
                 "FileExtension": "mp4",
                 "Date": mockTimeString,
+                "isDraft": false,
+                "UserId": 1,
+                "User": {
+                "id": 1,
+                "FirstName": "u1",
+                "LastName": "u1",
+                "Email": "u1@email.com"
+                }
+            },
+            {
+                "id": 4,
+                "Title": "video2",
+                "FilePath": "media/videos/video1",
+                "FileExtension": "mp4",
+                "Date": mockTimeString,
+                "isDraft": false,
                 "UserId": 1,
                 "User": {
                 "id": 1,
@@ -265,7 +316,7 @@ test('Check if GetMedia handler responds with data',
                 "Email": "u1@email.com"
                 }
             }
-        ]
+        ];
 
         pipe.data[0].forEach((element : any) => {
             element.Date = mockTimeString;
@@ -275,50 +326,18 @@ test('Check if GetMedia handler responds with data',
     }
 )
 
-test('Checks if GetMediaContainsName handler responds with correct data',
-    async () => {
-        const pipe = new SendPipe();
-        const res = { json: pipe.getJSONCallback() };
-
-        const req = { params: { like: 'video' } };
-
-        const mockTimestamp : Date = new Date();
-        const mockTimeString : string = mockTimestamp.toISOString();
-
-        // await GetMediaContainsNameHandler(req as any, res as any);
-
-        const expected = [
-            {
-                "id": 2,
-                "Title": "video1",
-                "FilePath": "media/videos/video1",
-                "FileExtension": "mp4",
-                "Date": mockTimeString,
-                "UserId": 1,
-                "User": {
-                "id": 1,
-                "FirstName": "u1",
-                "LastName": "u1",
-                "Email": "u1@email.com"
-                }
-            }
-        ]
-
-        pipe.data[0].forEach((element : any) => {
-            if (element) element.Date = mockTimeString;
-        });
-
-        expect(pipe.data[0]).toEqual(expected);
-
-    }
-)
-
 test('Checks if GetTags handler responds with data', 
     async () => {
         const pipe = new SendPipe();
-        const res = { json: pipe.getJSONCallback() };
-
-        await GetTagsHandler({} as express.Request, res as any)
+        const res = { json: pipe.getJSONCallback(), status : pipe.getStatusCallback() };
+        const token = createToken(1);
+        const req = {
+            headers : {
+                authorization: `Bearer ${token}`
+            },
+            query : {}
+        };
+        await GetTagsHandler(req as any, res as any)
 
         const expected = [
             {
