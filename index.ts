@@ -44,7 +44,7 @@ app.use(cors());
 app.use(express.json());
 app.use(helmet());
 
-function createToken(uId : number) : string | null {
+export function createToken(uId : number) : string | null {
   if(!SECRET_KEY){
     console.log("no secret key found");
     return null;
