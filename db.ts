@@ -18,8 +18,8 @@ class OverclockSequelize extends Sequelize {
   }
   //calling this will seed the DB with some dummy data
   async seedDummyData() {
-    await this.sync({force:true})
-    //await this.sync();
+    //await this.sync({force:true})
+    await this.sync();
     const u1 = User.build(
       {
         FirstName: 'u1',
@@ -188,6 +188,30 @@ async GetUserById(ID: number) {
   async GetPostById(ID: number) {
     let post = await Post.findOne({
       where: { id: ID },
+      attributes: ['id',
+          'Title',
+          'Body',
+          'isDraft',
+          'Date',
+        ],
+      include: [{
+        model: User,
+        attributes: ['id',
+          'FirstName',
+          'LastName',
+          'Email'
+        ]
+      },
+    {model: Comment, include: [{model: User, attributes: ['id', 'FirstName', 'LastName']}]},
+    {model: Tag},
+    {model: Media, attributes: ['id', 'Title', 'FilePath', 'FileExtension']}
+  ]
+    });
+    return post;
+  }
+    async GetDraftsByUserId(ID: number) {
+    let post = await Post.findAll({
+      where: { userId: ID, isDraft : true},
       attributes: ['id',
           'Title',
           'Body',
@@ -624,7 +648,7 @@ You can also just manually create the DB in SSMS and make the owner your user! o
 export const sequelize = new OverclockSequelize(
   {
     database: "OverclockMediaCMS", username: "rory", password: "Password123!", 
-    config: TestConfig
+    config: ProductionConfig
   });
 
 const User = sequelize.define(

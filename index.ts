@@ -564,35 +564,36 @@ export const GetDraftsHandler = async (req: express.Request, res: express.Respon
   }
 
   const parsedUserId = parseInt(userId as string);
+  let result = await sequelize.GetDraftsByUserId(parsedUserId);
+  res.json(result);
+  // const [postDrafts, mediaDrafts] = await Promise.all([
+  //   sequelize.GetDraftPosts(parsedUserId),
+  //   sequelize.GetMediaDrafts(parsedUserId)
+  // ]);
 
-  const [postDrafts, mediaDrafts] = await Promise.all([
-    sequelize.GetDraftPosts(parsedUserId),
-    sequelize.GetMediaDrafts(parsedUserId)
-  ]);
+  // const formattedPosts = postDrafts.map((p: any) => {
+  //   const post = typeof p.toJSON === 'function' ? p.toJSON() : p;
+  //   return { ...post, type: 'post' };
+  // });
 
-  const formattedPosts = postDrafts.map((p: any) => {
-    const post = typeof p.toJSON === 'function' ? p.toJSON() : p;
-    return { ...post, type: 'post' };
-  });
+  // const formattedMedia = mediaDrafts.map((m: any) => {
+  //   const media = typeof m.toJSON === 'function' ? m.toJSON() : m;
+  //   return { ...media, type: 'media' };
+  // });
 
-  const formattedMedia = mediaDrafts.map((m: any) => {
-    const media = typeof m.toJSON === 'function' ? m.toJSON() : m;
-    return { ...media, type: 'media' };
-  });
+  // const combined = [...formattedPosts, ...formattedMedia].sort(
+  //   (a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime()
+  // );
 
-  const combined = [...formattedPosts, ...formattedMedia].sort(
-    (a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime()
-  );
-
-  res.json(combined);
+  // res.json(combined);
 };
 
 export const DeleteDraftHandler = async (req: express.Request, res: express.Response) => {
   if(!validateToken(req, res))
     return;    
-  const { id, type } = req.query;
+  const { id} = req.query;
 
-  if (!id || !type) {
+  if (!id) {
     return res.status(400);
   }
 
@@ -600,14 +601,7 @@ export const DeleteDraftHandler = async (req: express.Request, res: express.Resp
   let result;
 
   try {
-    if (type === 'post') {
       result = await sequelize.DeletePostById(targetId);
-    } else if (type === 'media') {
-      result = await sequelize.DeleteMediaById(targetId);
-    } else {
-      return res.status(400).json({ error: "Invalid type. Must be 'post' or 'media'" });
-    }
-
     if (!result) {
       return res.status(404).json({ error: "Draft not found in database" });
     }
