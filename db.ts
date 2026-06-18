@@ -604,6 +604,9 @@ export const TestConfig = {
 CREATE LOGIN [NewUser] WITH PASSWORD = 'password', CHECK_POLICY = OFF;
 GO
 
+CREATE LOGIN [rory] WITH PASSWORD = 'Password123!', CHECK_POLICY = OFF;
+GO
+
 I believe there is a CLI command to create the DB but it isnt automatically created when you run the program
 You can also just manually create the DB in SSMS and make the owner your user! otherwise you wont be able to access it.
 
@@ -621,7 +624,7 @@ You can also just manually create the DB in SSMS and make the owner your user! o
 export const sequelize = new OverclockSequelize(
   {
     database: "OverclockMediaCMS", username: "rory", password: "Password123!", 
-    config: ProductionConfig
+    config: TestConfig
   });
 
 const User = sequelize.define(

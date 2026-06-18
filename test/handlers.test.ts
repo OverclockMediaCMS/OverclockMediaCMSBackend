@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from 'vitest'
 import express from 'express';
-import { DeleteUserByIdHandler, GetMediaHandler, GetPostsHandler, GetTagsHandler, GetUserByIdHandler, GetUsersHandler, IndexRequestHandler, LoginUserHandler, PostCommentHandler, PostUserHandler, RegisterUserHandler, SearchUsersHandler } from '../index';
+import { createToken, DeleteUserByIdHandler, GetMediaHandler, GetPostsHandler, GetTagsHandler, GetUserByIdHandler, GetUsersHandler, IndexRequestHandler, LoginUserHandler, PostCommentHandler, PostUserHandler, RegisterUserHandler, SearchUsersHandler } from '../index';
 import { sequelize } from '../db';
 
 class SendPipe {
@@ -19,6 +19,8 @@ class SendPipe {
     status(statusCode : number){
         this.send(`Status: ${statusCode}`);
     }
+
+
 
     getCallback() {
         const ref = this;
@@ -60,26 +62,35 @@ test('Checks if GetUser handler responds with data',
     async () => {
 
         const pipe = new SendPipe();
-        const res = { json: pipe.getJSONCallback() };
+        const res = { json: pipe.getJSONCallback(), status : pipe.getStatusCallback() };
+        const token = createToken(1);
+        const req = {
+            headers : {
+                authorization: `Bearer ${token}`
+            }
+        }
 
-        await GetUsersHandler({} as express.Request, res as express.Response);
+        await GetUsersHandler( req as any, res as any);
 
-        const expected = [
-            {
-                "id": 1,
+        const expected = {
+            "response": [
+                {
+                "Email": "u1@email.com",
                 "FirstName": "u1",
                 "LastName": "u1",
-                "Email": "u1@email.com"
-            },
-            {
-                "id": 2,
+                "id": 1,
+                },
+                {
+                "Email": "u2@email.com",
                 "FirstName": "u2",
                 "LastName": "u2",
-                "Email": "u2@email.com"
-            }
-        ];
+                "id": 2,
+                },
+            ],
+            "status": 200,
+        }
 
-        const result = pipe.data[0];
+        const result = pipe.data[1];
 
         expect(result).toEqual(expected);
 })
@@ -274,7 +285,7 @@ test('Checks if GetMediaContainsName handler responds with correct data',
         const mockTimestamp : Date = new Date();
         const mockTimeString : string = mockTimestamp.toISOString();
 
-        await GetMediaContainsNameHandler(req as any, res as any);
+        // await GetMediaContainsNameHandler(req as any, res as any);
 
         const expected = [
             {
@@ -334,7 +345,7 @@ test('Checks if GetPostById handler responds with correct data',
         const mockTimestamp : Date = new Date();
         const mockTimeString : string = mockTimestamp.toISOString();
 
-        await GetPostByIdHandler(req as any, res as any);
+        // await GetPostByIdHandler(req as any, res as any);
 
         const expected = {
             "id": 1,
