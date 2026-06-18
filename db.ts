@@ -148,33 +148,33 @@ class OverclockSequelize extends Sequelize {
     await (p2 as any).addTags(tag2);
 
   }
-  async GetUserById(ID: number) {
-    let user = await User.findOne({
-      where: { id: ID },
-      attributes: ['id',
-        'FirstName',
-        'LastName',
-        'Email',
-        [
-          sequelize.literal(`(
-            SELECT COUNT(*)
-            FROM [Posts] AS [post]
-            WHERE [post].[UserId] = [User].[id]
-          )`),
-          'postCount'
-        ],
-        [
-          sequelize.literal(`(
-            SELECT COUNT(*)
-            FROM Media AS media
-            WHERE [media].[UserId] = [User].[id]
-          )`),
-          'mediaCount'
-        ]
-      ]
-    });
-    return user;
-  }
+async GetUserById(ID: number) {
+  let user = await User.findOne({
+    where: { id: ID },
+    attributes: [
+      'id',
+      'FirstName',
+      'LastName',
+      'Email',
+      [sequelize.fn('COUNT', sequelize.col('Posts.id')), 'postCount'],
+      [sequelize.fn('COUNT', sequelize.col('Media.id')), 'mediaCount'],
+    ],
+    include: [
+      {
+        model: Post,
+        attributes: [],
+        required: false,
+      },
+      {
+        model: Media,
+        attributes: [],
+        required: false,
+      },
+    ],
+    group: ['User.id', 'User.FirstName', 'User.LastName', 'User.Email'],
+  });
+  return user;
+}
   async GetAllUsers() {
     let users = await User.findAll({
       attributes: ['id',
