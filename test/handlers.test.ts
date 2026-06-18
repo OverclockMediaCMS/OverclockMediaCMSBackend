@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from 'vitest'
 import express from 'express';
-import { createToken, DeleteUserByIdHandler, GetMediaHandler, GetPostsHandler, GetTagsHandler, GetUserByIdHandler, GetUsersHandler, IndexRequestHandler, LoginUserHandler, PostCommentHandler, PostUserHandler, RegisterUserHandler, SearchUsersHandler } from '../index';
+import { CreatePostHandler, createToken, DeleteUserByIdHandler, GetMediaHandler, GetPostsHandler, GetTagsHandler, GetUserByIdHandler, GetUsersHandler, IndexRequestHandler, LoginUserHandler, PostCommentHandler, PostUserHandler, RegisterUserHandler, SearchUsersHandler } from '../index';
 import { sequelize } from '../db';
 
 class SendPipe {
@@ -737,7 +737,21 @@ test('Check if LoginUser handler succesfully logins with correct user details',
     }
 )
 
-test.todo('Checks if PostPost inserts into Post correctly')
+test.todo('Checks if PostPost inserts into Post correctly', async () => {
+    const pipe = new SendPipe();
+    const res = {
+            status: pipe.getStatusCallback(),
+            send: pipe.getCallback(),
+            json: pipe.getJSONCallback()
+        };
+    const token = createToken(1);
+    const req = {
+        headers : {
+            authorization: `Bearer ${token}`
+        }
+    }
+    await CreatePostHandler(req as any, res as any);
+})
 
 // test.todo('Checks if DeletePost handler delete posts properly with id param')
 
