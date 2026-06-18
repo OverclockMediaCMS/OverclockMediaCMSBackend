@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from 'vitest'
 import express from 'express';
-import { DeleteUserByIdHandler, GetMediaContainsNameHandler, GetMediaHandler, GetPostByIdHandler, GetPostsHandler, GetTagsHandler, GetUserByIdHandler, GetUsersHandler, IndexRequestHandler, LoginUserHandler, PostCommentHandler, PostUserHandler, RegisterUserHandler, SearchUsersHandler } from '../index';
+import { DeleteUserByIdHandler, GetMediaHandler, GetPostsHandler, GetTagsHandler, GetUserByIdHandler, GetUsersHandler, IndexRequestHandler, LoginUserHandler, PostCommentHandler, PostUserHandler, RegisterUserHandler, SearchUsersHandler } from '../index';
 import { sequelize } from '../db';
 
 class SendPipe {
