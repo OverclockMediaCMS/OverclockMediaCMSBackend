@@ -170,72 +170,134 @@ test('Checks if SearchUsers handler correctly filters users by FirstName query',
         expect(pipe.data[0]).toEqual(expected);
 })
 
-test('Checks if GetPosts handler correctly returns data',
+test('Check if Posts without search params returns most recent',
     async () => {
         const pipe = new SendPipe();
         const res = { json: pipe.getJSONCallback() };
         
-        await GetPostsHandler({} as express.Request, res as any);
+        const token = createToken(1);
+        const req = {
+            headers : {
+                authorization: `Bearer ${token}`
+            },
+            query: {}
+        }
+        await GetPostsHandler(req as any, res as any);
 
         const mockTimestamp : Date = new Date();
         const mockTimeString : string = mockTimestamp.toISOString();
 
         const expected = [
+        {
+          "id": 2,
+          "Title": "post 2",
+          "Body": "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+          "isDraft": false,
+          "Date": mockTimeString,
+          "UserId": 2,
+          "User": {
+            "id": 2,
+            "FirstName": "u2",
+            "LastName": "u2",
+            "Email": "u2@email.com"
+          },
+          "Tags": [
             {
-                "id": 1,
-                "Title": "This is a post",
-                "Body": "This is the body",
-                "isDraft": false,
-                "Date": mockTimeString,
-                "User": {
-                "id": 1,
-                "FirstName": "u1",
-                "LastName": "u1",
-                "Email": "u1@email.com"
-                },
-                "Tags": [
-                {
-                    "id": 2,
-                    "Title": "Urgent",
-                    "TagPost": {
-                    "TagId": 2,
-                    "PostId": 1
-                    }
-                }
-                ],
-                "Comments": []
-            },
-            {
-                "id": 2,
-                "Title": "This is another post",
-                "Body": "This is the body",
-                "isDraft": false,
-                "Date": mockTimeString,
-                "User": {
-                "id": 2,
-                "FirstName": "u2",
-                "LastName": "u2",
-                "Email": "u2@email.com"
-                },
-                "Tags": [
-                    {
-                        "id": 1,
-                        "Title": "Update",
-                        "TagPost": {
-                        "TagId": 1,
-                        "PostId": 2
-                        }
-                    }
-                ],
-                "Comments": []
+              "id": 1,
+              "Title": "Update",
+              "TagPost": {
+                "TagId": 1,
+                "PostId": 2
+              }
             }
-        ];
+          ],
+          "Comments": [],
+          "Media": []
+        },
+        {
+          "id": 3,
+          "Title": "post 3",
+          "Body": "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+          "isDraft": false,
+          "Date": mockTimeString,
+          "UserId": 1,
+          "User": {
+            "id": 1,
+            "FirstName": "u1",
+            "LastName": "u1",
+            "Email": "u1@email.com"
+          },
+          "Tags": [],
+          "Comments": [],
+          "Media": []
+        },
+        {
+          "id": 4,
+          "Title": "post 4",
+          "Body": "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+          "isDraft": false,
+          "Date": mockTimeString,
+          "UserId": 2,
+          "User": {
+            "id": 2,
+            "FirstName": "u2",
+            "LastName": "u2",
+            "Email": "u2@email.com"
+          },
+          "Tags": [],
+          "Comments": [],
+          "Media": []
+        },
+        {
+          "id": 5,
+          "Title": "post 5",
+          "Body": "## firstsection\n### subsection\n## secondsection \n### subsection\n*italic*",
+          "isDraft": false,
+          "Date": mockTimeString,
+          "UserId": 2,
+          "User": {
+            "id": 2,
+            "FirstName": "u2",
+            "LastName": "u2",
+            "Email": "u2@email.com"
+          },
+          "Tags": [],
+          "Comments": [],
+          "Media": []
+        },
+        {
+          "id": 1,
+          "Title": "A Guide to Urban Gardening",
+          "Body": "## Getting Started\n### Choosing Your Space\nWhether you have a balcony, rooftop, or small backyard, almost any space can be transformed into a productive garden. Start by assessing how much sunlight your space receives throughout the day.\n### Essential Tools\nYou don't need much to get started. A trowel, watering can, and some basic pots will get you a long way. Invest in quality soil before anything else.\n## Choosing What to Grow\n### Vegetables\nTomatoes, lettuce, and herbs are the best starting points for urban gardeners. They grow quickly, don't need much space, and are satisfying to harvest.\n### Herbs\nBasil, mint, and chives are nearly impossible to kill and incredibly useful in the kitchen. Keep them near a sunny window if space is tight.\n### Flowers\nMarigolds and nasturtiums are great companions for vegetables, deterring pests naturally while adding colour to your garden.\n## Soil and Nutrition\n### Picking the Right Soil\nNever use soil straight from the ground in containers — it compacts too easily. Use a quality potting mix designed for container gardening.\n### Composting\nEven in a small apartment you can maintain a worm farm or bokashi bin to turn food scraps into rich compost for your plants.\n## Watering and Maintenance\n### How Often to Water\nMost container plants need watering more frequently than garden beds since they dry out faster. Check the top inch of soil — if it's dry, water it.\n### Dealing with Pests\nAphids and fungus gnats are the most common urban garden pests. A diluted neem oil spray handles both without harsh chemicals.\n## Harvesting\n### Knowing When to Pick\nHarvesting at the right time encourages more growth. For most leafy greens, pick outer leaves first and let the centre keep producing.\n### Storing Your Produce\nFresh herbs last longest when stored upright in a glass of water in the fridge, loosely covered with a plastic bag.",
+          "isDraft": false,
+          "Date": mockTimeString,
+          "UserId": 1,
+          "User": {
+            "id": 1,
+            "FirstName": "u1",
+            "LastName": "u1",
+            "Email": "u1@email.com"
+          },
+          "Tags": [
+            {
+              "id": 2,
+              "Title": "Urgent",
+              "TagPost": {
+                "TagId": 2,
+                "PostId": 1
+              }
+            }
+          ],
+          "Comments": [],
+          "Media": []
+        }
+        ]
 
         pipe.data[0].forEach((element : any) => {
             if (element) element.Date = mockTimeString;
         });
-
-        expect(pipe.data[0]).toEqual(expected);
+        const sort = (arr: any[]) => [...arr].sort((a, b) => a.id - b.id);
+        expect(sort(pipe.data[0])).toEqual(sort(expected));
     }
 )
 

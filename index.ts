@@ -58,7 +58,7 @@ export function createToken(uId : number) : string | null {
 function validateToken(req : express.Request, res : express.Response) : boolean {
   const token = req.headers.authorization?.split(' ')[1];
   if(!token){
-    res.status(401).json({error: "Invalid Token"});
+    res.status(401).json({error: "Invalid Token"}); 
     return false;
   }
   try{
