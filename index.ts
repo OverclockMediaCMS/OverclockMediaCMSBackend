@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken'
 import 'dotenv/config';
 
 let SECRET_KEY = process.env.SECRET_KEY;
+
 import path from 'node:path';
 import fs from 'node:fs';
 import multer from 'multer';
@@ -222,11 +223,11 @@ export const LoginUserHandler = async (req: express.Request, res: express.Respon
   const { Email, Password } = req.body;
   const user = await sequelize.LoginUser(Email, Password);
   if (user == undefined) {
-    return res.status(401).json({ error: "Invaild Email or Password" });
+    return res.status(403).json({ error: "Invaild Email or Password" });
   } else {
     const token = createToken(user.dataValues.id);
     if(token == null)
-      return res.status(401).json({ error: "Login valid with server error" });
+      return res.status(403).json({ error: "Login valid with server error" });
     res.status(200).json({user, token});
   }
 }
