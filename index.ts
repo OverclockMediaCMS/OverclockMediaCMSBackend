@@ -556,6 +556,7 @@ export const GetDraftsHandler = async (req: express.Request, res: express.Respon
 
   if (id != undefined) {
     const result = await sequelize.GetPostById(parseInt(id as string));
+    if (!result) return res.status(404).json({ error : "not found"})
     return res.json(result);
   }
 
