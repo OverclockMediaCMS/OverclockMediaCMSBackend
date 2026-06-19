@@ -5,6 +5,10 @@ import helmet from 'helmet';
 import { parse } from 'node:path';
 import jwt from 'jsonwebtoken'
 import 'dotenv/config';
+import YAML from 'yamljs'
+import swaggerUi from 'swagger-ui-express';
+
+
 
 let SECRET_KEY = process.env.SECRET_KEY;
 
@@ -185,7 +189,7 @@ export const PostCommentHandler = async (req: express.Request, res: express.Resp
   if (!result) {
     const response = {
       status: 500,
-      response: "Internal Error - Cannot Create Post"
+      response: "Internal Error - Cannot Create Comment"
     }
     res.status(500).json(response);
   } else {
@@ -618,7 +622,6 @@ export const DeleteDraftHandler = async (req: express.Request, res: express.Resp
 
 app.get("/", IndexRequestHandler);
 
-// User Endpoints
 app.get("/users", GetUsersHandler);
 
 app.get("/users/search", SearchUsersHandler);
@@ -679,6 +682,10 @@ app.delete("/drafts", DeleteDraftHandler);
 // MediaPost Endpoints - TBD
 
 app.post("/media-post/create", PostMediaPostHandler);
+
+const swaggerDocument = YAML.load('./swagger.yaml');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 
 app.listen(PORT, () => {
   console.log(`app listening on port ${PORT}`);

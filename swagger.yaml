@@ -1,0 +1,189 @@
+openapi: 3.0.0
+info:
+  title: Overclock Media API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+
+paths:
+
+  /:
+    get:
+      summary: Root endpoint
+      responses:
+        '200': { description: OK }
+
+  /users:
+    get:
+      summary: Get all users
+      tags: [Users]
+      responses:
+        '200': { description: OK }
+        '404': { description: Users not found }
+
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      tags: [Users]
+      responses:
+        '200': { description: OK }
+        '404': { description: Users not found }
+    put:
+      summary: Update user by ID
+      tags: [Users]
+      responses:
+        '200': { description: OK }
+        '404': { description: Users not found }
+        '500': { description: server error }
+    delete:
+      summary: Delete user by ID
+      tags: [Users]
+      responses:
+        '200': { description: OK }
+        '500': { description: server error }
+
+  /users/create:
+    post:
+      summary: Create user
+      tags: [Users]
+      responses:
+        '200': { description: OK }
+        '500': { description: server error }
+
+  /users/register:
+    post:
+      summary: Register new user
+      tags: [Users]
+      responses:
+        '200': { description: OK }
+        '409': { description: This email address has already been registered }
+
+  /users/login:
+    post:
+      summary: Log in user
+      tags: [Users]
+      responses:
+        '200': { description: OK , User: user}
+        '403': { description: Invalid email or password }
+
+
+
+  /posts:
+    get:
+      summary: Get posts (by id, search, or recent)
+      tags: [Posts]
+      responses:
+        '200': { Posts: posts}
+
+  /posts/create:
+    post:
+      summary: Create post (with optional media)
+      tags: [Posts]
+      responses:
+        '200': { description: OK }
+        '500': { description: server error }
+
+  /posts/{id}:
+    delete:
+      summary: Delete post by ID
+      tags: [Posts]
+      responses:
+        '200': { description: OK }
+        '500': { description: server error }
+
+  /media:
+    get:
+      summary: Get media (by id, search, or recent)
+      tags: [Media]
+      responses:
+        '200': { Media : Media }
+
+
+  /media/create:
+    post:
+      summary: Upload media
+      tags: [Media]
+      responses:
+        '200': { Media : Media }
+
+  /media/{id}:
+    delete:
+      summary: Delete media by ID
+      tags: [Media]
+      responses:
+        '200': { description: OK }
+        '500': { description: server error }
+
+
+  /tags:
+    get:
+      summary: Get all tags
+      tags: [Tags]
+      responses:
+        '200': { Tags: tags }
+        '404': { description: Error tags not found }
+
+
+  /tags/create:
+    post:
+      summary: Create tag
+      tags: [Tags]
+      responses:
+        '200': { description: OK }
+        '500': { description: Cannot create tag internal error }
+
+
+  /tags/{id}:
+    delete:
+      summary: Delete tag by ID
+      tags: [Tags]
+      responses:
+        '200': { description: OK }
+        '500': { description: Cannot Delete tag internal error }
+
+  /comment:
+    post:
+      summary: Create comment
+      tags: [Comments]
+      responses:
+        '200': { description: OK }
+        '500': { description: Cannot create comment internal error }
+
+  /comments/{postid}:
+    get:
+      summary: Get comments for a post
+      tags: [Comments]
+      responses:
+        '200': { Comment: comment }
+        '404': { }
+
+  /comments/{id}:
+    delete:
+      summary: Delete comment by ID
+      tags: [Comments]
+      responses:
+        '200': { description: OK }
+        '500': { description: Cannot delete comment internal error }
+
+  /drafts:
+    get:
+      summary: Get draft(s)
+      tags: [Drafts]
+      responses:
+        '200': {Drafts: drafts}
+        '400': {}
+    delete:
+      summary: Delete draft
+      tags: [Drafts]
+      responses:
+        '200': { description: OK }
+        '500': { description: Cannot delete draft internal error }
+
+  /media-post/create:
+    post:
+      summary: Link media to post
+      tags: [MediaPost]
+      responses:
+        '200': { description: OK }
+        '500': { description: Cannot create MediaPost internal error }
