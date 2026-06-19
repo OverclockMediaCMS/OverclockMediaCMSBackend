@@ -3,7 +3,7 @@ import SQLite from 'sqlite3';
 import crypto from 'node:crypto'
 
 
-class OverclockSequelize extends Sequelize {
+export class OverclockSequelize extends Sequelize {
   async tryConnect() {
     try {
       await this.authenticate();
@@ -648,7 +648,7 @@ You can also just manually create the DB in SSMS and make the owner your user! o
 export const sequelize = new OverclockSequelize(
   {
     database: "OverclockMediaCMS", username: "rory", password: "Password123!", 
-    config: ProductionConfig
+    config: TestConfig
   });
 
 const User = sequelize.define(
